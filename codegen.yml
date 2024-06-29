@@ -1,0 +1,23 @@
+overwrite: true
+schema: ${VITE_GRAPHQL_API_URL}
+documents: "./src/graphql/**/*.graphql"
+generates:
+  src/generated/graphql.tsx:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+      - add:
+          content:
+            - "/* eslint-disable */"
+    config:
+      skipTypename: false
+      withHooks: true
+      withHOC: false
+      withComponent: false
+  src/generated/schema.graphql:
+    plugins:
+      - schema-ast
+    config:
+      includeDirectives: true
+      sort: true

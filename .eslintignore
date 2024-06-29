@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.idea
+.vscode
+.env
+src/generated/
+src/vite-env.d.ts
+src/routeTree.gen.ts
