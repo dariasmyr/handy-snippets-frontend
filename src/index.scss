@@ -9,6 +9,7 @@
   text-rendering: optimizelegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding: 0 10vw;
 }
 
 a {
@@ -24,10 +25,10 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  place-items: start;
   min-width: 320px;
   min-height: 100vh;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 h1 {
@@ -70,3 +71,4 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+

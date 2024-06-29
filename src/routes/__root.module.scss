@@ -1,14 +1,5 @@
-.header {
-  display: flex;
-  gap: 1em;
-
-  /* border only between children */
-  > * + * {
-    border-left: 1px solid #ccc;
-    padding-left: 1em;
-  }
-}
-
 .logo {
- width: 300px;
+  width: 120px;
+  height: 50px;
+  object-fit: cover;
 }

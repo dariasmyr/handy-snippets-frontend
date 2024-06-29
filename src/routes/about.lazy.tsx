@@ -8,5 +8,13 @@ export const Route = createLazyFileRoute("/about")({
 
 function About(): JSX.Element {
   const { t } = useTranslation(["about"]);
-  return <div className="p-2">{t("about:text")}</div>;
+  return (
+    <div
+      style={{
+        width: "100%",
+      }}
+    >
+      {t("about:text")}
+    </div>
+  );
 }

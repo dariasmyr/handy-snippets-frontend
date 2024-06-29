@@ -41,6 +41,7 @@
     "@graphql-codegen/typescript-react-apollo": "4.3.0",
     "@tanstack/react-router": "^1.35.3",
     "@tanstack/router-devtools": "^1.35.3",
+    "antd": "^5.18.3",
     "dotenv": "^16.4.5",
     "graphql": "^16.8.1",
     "i18next": "^23.11.5",
