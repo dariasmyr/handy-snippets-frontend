@@ -1,0 +1,11 @@
+mutation CreateDocument(
+  $title: String!,
+  $value: String!,
+  $accessKey: String!
+) {
+  createDocument(input: {
+    title: $title,
+    value: $value,
+    accessKey: $accessKey
+  })
+}

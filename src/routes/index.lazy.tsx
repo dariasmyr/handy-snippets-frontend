@@ -16,7 +16,6 @@ import {
 import { Typography } from "antd";
 
 import logo from "../../.github/logo.svg";
-import { useGetAllFilmsQuery } from "../generated/graphql";
 
 import styles from "./__root.module.scss";
 
@@ -39,7 +38,7 @@ export const Route = createLazyFileRoute("/")({
 });
 
 function Index(): JSX.Element {
-  const { loading, data, error } = useGetAllFilmsQuery();
+  // const { loading, data, error } = useGetAllFilmsQuery();
   const [activeTab, setActiveTab] = useState("1");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -76,9 +75,9 @@ function Index(): JSX.Element {
     },
   ];
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-  if (!data) return <p>No data!</p>;
+  // if (loading) return <p>Loading...</p>;
+  // if (error) return <p>Error: {error.message}</p>;
+  // if (!data) return <p>No data!</p>;
 
   const renderContent = (): JSX.Element | null => {
     switch (activeTab) {

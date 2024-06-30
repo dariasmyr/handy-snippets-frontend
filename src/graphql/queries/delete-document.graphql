@@ -1,0 +1,3 @@
+mutation DeleteDocument($id: Int!, $accessKey: String!) {
+  deleteDocument(id: $id, accessKey: $accessKey)
+}

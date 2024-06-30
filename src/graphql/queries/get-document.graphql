@@ -1,0 +1,13 @@
+query GetDocument($id: Int!) {
+  getDocument(id: $id) {
+    id
+    createdAt
+    updatedAt
+    title
+    value
+    accessKey
+    viewCount
+    maxViewCount
+    ttlMs
+  }
+}
