@@ -1,3 +1,5 @@
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable unicorn/no-null */
 import { useEffect, useState } from "react";
 import { DeleteOutlined } from "@ant-design/icons";
 import { createLazyFileRoute } from "@tanstack/react-router";
@@ -9,23 +11,22 @@ import {
   Modal,
   Popconfirm,
   PopconfirmProps,
-  Segmented,
   Space,
   Tabs,
   Typography,
 } from "antd";
 
 import logo from "../../.github/logo.svg";
+import {
+  useCreateDocumentMutation,
+  useDeleteDocumentMutation,
+  useGetDocumentQuery,
+} from "../generated/graphql.tsx";
 
 import styles from "./__root.module.scss";
 
 const { Title } = Typography;
 const { TextArea } = Input;
-
-const confirm: PopconfirmProps["onConfirm"] = (event): void => {
-  console.log(event);
-  message.success("Click on Yes");
-};
 
 const cancel: PopconfirmProps["onCancel"] = (event): void => {
   console.log(event);
@@ -36,36 +37,102 @@ export const Route = createLazyFileRoute("/")({
   component: Index,
 });
 
+const createAccessKey = (): string => {
+  return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+};
+
+const encryptDocument = (document: string, password: string): string => {
+  return CryptoJS.AES.encrypt(document, password).toString();
+};
+
+const decryptDocument = (document: string, password: string): string | null => {
+  try {
+    const bytes = CryptoJS.AES.decrypt(document, password);
+    if (bytes.toString()) {
+      return bytes.toString(CryptoJS.enc.Utf8);
+    }
+    return null;
+  } catch (error) {
+    console.error("Decryption error:", error);
+    return null;
+  }
+};
+
 function Index(): JSX.Element {
+  const [createDocument] = useCreateDocumentMutation();
+  const [deleteDocument] = useDeleteDocumentMutation();
   const [activeTab, setActiveTab] = useState("1");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [password, setPassword] = useState("");
+  const [documentId, setDocumentId] = useState<number | null>(null);
+  const [accessKey, setAccessKey] = useState<string | null>("");
+  const [documentTitle, setDocumentTitle] = useState<string>("");
+  const [documentData, setDocumentData] = useState<string>("");
 
   const urlParameters = new URLSearchParams(window.location.search);
-  const documentId = urlParameters.get("documentId");
-  const accessKey = urlParameters.get("accessKey");
+  const documentIdFromUrl = urlParameters.get("documentId");
+  const accessKeyFromUrl = urlParameters.get("accessKey");
   const urlPassword = urlParameters.get("password");
 
+  const {
+    data: getDocumentData,
+    loading: getDocumentLoading,
+    error: getDocumentError,
+  } = useGetDocumentQuery({
+    variables: { id: Number.parseInt(documentIdFromUrl || "0") },
+    skip: !documentIdFromUrl,
+  });
+
   useEffect(() => {
-    if (documentId && accessKey) {
+    if (documentIdFromUrl) {
       setActiveTab("2");
-    } else if (documentId && !urlPassword) {
-      showModal();
-    } else if (documentId && urlPassword) {
-      setActiveTab("2");
+      setDocumentId(Number.parseInt(documentIdFromUrl));
+      if (getDocumentData?.getDocument?.value) {
+        setDocumentData(getDocumentData.getDocument?.value);
+      }
+      if (!urlPassword) {
+        showModal();
+      }
+      if (accessKeyFromUrl) {
+        setAccessKey(accessKeyFromUrl);
+      }
     } else {
       setActiveTab("1");
     }
-  }, [documentId, accessKey, urlPassword]);
+  }, [documentIdFromUrl, accessKeyFromUrl, urlPassword]);
 
   const showModal = (): void => {
     setIsModalOpen(true);
   };
 
-  const handleOk = (): void => {
+  const handleOk = async (): Promise<void> => {
     if (password) {
       setIsModalOpen(false);
-      setActiveTab("2");
+      if (activeTab === "1") {
+        try {
+          const accessKeyGenerated = createAccessKey();
+          const { data: createDocumentData } = await createDocument({
+            variables: {
+              title: documentTitle,
+              value: encryptDocument(documentData, password),
+              accessKey: accessKeyGenerated,
+            },
+          });
+          if (createDocumentData?.createDocument) {
+            setDocumentId(createDocumentData.createDocument);
+            setAccessKey(accessKeyGenerated);
+            message.success("Document created successfully");
+          }
+        } catch (error) {
+          message.error(`Failed to create document: ${error}`);
+        }
+      } else if (activeTab === "2") {
+        // decrypt the document
+        // if password is correct, update the document
+        // else show error message
+        message.success("Password accepted.");
+        decryptDocument(documentData, password);
+      }
     } else {
       message.error("Please enter the password.");
     }
@@ -73,6 +140,39 @@ function Index(): JSX.Element {
 
   const handleCancel = (): void => {
     setIsModalOpen(false);
+  };
+
+  const handleCreateNewDocument = (): void => {
+    setDocumentTitle("");
+    setDocumentData("");
+  };
+
+  const handleCreateDocument = (): void => {
+    showModal();
+  };
+
+  const handleCopyToClipboard = (): void => {
+    const url = `${window.location.origin}/?documentId=${documentId}&accessKey=${accessKey}&password=${password}`;
+    message.success("Copied to clipboard, share the link with others.");
+    navigator.clipboard.writeText(url);
+  };
+
+  const handleDeleteDocument = async (): Promise<void> => {
+    if (!documentId || !accessKey) {
+      message.error("Document ID or access key missing.");
+      return;
+    }
+    try {
+      await deleteDocument({
+        variables: { id: documentId, accessKey },
+      });
+      message.success("Document deleted successfully");
+      setDocumentId(null);
+      setAccessKey(null);
+      setActiveTab("1");
+    } catch (error) {
+      message.error(`Failed to delete document: ${error}`);
+    }
   };
 
   const items = [
@@ -83,60 +183,100 @@ function Index(): JSX.Element {
     {
       key: "2",
       label: "View/Edit Document",
+      disabled: !documentIdFromUrl,
     },
   ];
+
+  const Controls = (): JSX.Element => {
+    return (
+      <Flex justify={"space-between"}>
+        <Flex gap="small" wrap>
+          <Button type="primary" onClick={handleCreateNewDocument}>
+            Create new
+          </Button>
+          <Button onClick={handleCreateDocument}>Save</Button>
+        </Flex>
+        <Flex gap="small" wrap>
+          <Button
+            type={"dashed"}
+            onClick={handleCopyToClipboard}
+            disabled={!documentId}
+          >
+            Copy to clipboard
+          </Button>
+          <Button type={"dashed"} onClick={handleCreateDocument}>
+            Raw
+          </Button>
+          <Space>
+            <Popconfirm
+              title="Delete the task"
+              description="Are you sure to delete this task?"
+              disabled={!documentId}
+              onConfirm={handleDeleteDocument}
+              onCancel={cancel}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button shape="circle" danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          </Space>
+        </Flex>
+      </Flex>
+    );
+  };
 
   const renderContent = (): JSX.Element | null => {
     switch (activeTab) {
       case "1": {
         return (
           <Flex gap="small" vertical>
-            <Flex justify={"space-between"}>
-              <Flex gap="small" wrap>
-                <Button type="primary">Create new</Button>
-                <Button>Save</Button>
-              </Flex>
-              <Flex gap="small" wrap>
-                <Segmented
-                  options={["Copy to clipboard", "Raw"]}
-                  onChange={(value) => {
-                    console.log(value);
-                  }}
-                />
-                <Space>
-                  <Popconfirm
-                    title="Delete the task"
-                    description="Are you sure to delete this task?"
-                    onConfirm={confirm}
-                    onCancel={cancel}
-                    okText="Send"
-                    cancelText="Cancel"
-                  >
-                    <Button shape="circle" danger icon={<DeleteOutlined />} />
-                  </Popconfirm>
-                </Space>
-              </Flex>
-            </Flex>
-            <Input placeholder="Name of the document" variant="filled" />
-            <TextArea rows={20} />
+            <Controls />
+            <Input
+              placeholder="Name of the document"
+              variant="filled"
+              value={documentTitle}
+              onChange={(event) => setDocumentTitle(event.target.value)}
+            />
+            <TextArea
+              rows={20}
+              placeholder="Document content"
+              variant="filled"
+              value={documentData}
+              onChange={(event) => setDocumentData(event.target.value)}
+            />
           </Flex>
         );
       }
       case "2": {
-        return (
+        if (getDocumentLoading) return <p>Loading...</p>;
+        if (getDocumentError) return <p>Error: {getDocumentError.message}</p>;
+        return accessKeyFromUrl ? (
           <Flex gap="small" vertical>
-            <Title level={3}>Title of the document</Title>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec
-              dui quis mi tincidunt ultricies. Curabitur ac metus in nunc
-              tincidunt aliquam. Sed nec nulla nec odio ultricies tincidunt. Ut
-              nec libero sit amet odio malesuada ultricies. Nulla facilisi.
-              Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-              posuere cubilia Curae; Nullam nec ultrices odio. Nulla facilisi.
-              Nullam nec ultrices odio. Nulla facilisi. Nullam nec ultrices
-              odio. Nulla facilisi. Nullam nec ultrices odio. Nulla facilisi.
-              Nullam nec ultrices odio. Nulla facilisi.
-            </p>
+            <Controls />
+            <Input
+              placeholder={
+                getDocumentData?.getDocument?.title || "Untitled document"
+              }
+              variant="filled"
+              value={documentTitle}
+              onChange={(event) => setDocumentTitle(event.target.value)}
+            />
+            <TextArea
+              rows={20}
+              placeholder={
+                getDocumentData?.getDocument?.value || "Document content"
+              }
+              variant="filled"
+              value={documentData}
+              onChange={(event) => setDocumentData(event.target.value)}
+            />
+          </Flex>
+        ) : (
+          <Flex gap="small" vertical>
+            <Title level={3}>
+              {getDocumentData?.getDocument?.title || "Title of the document"}
+            </Title>
+            <p>{documentData}</p>
           </Flex>
         );
       }
