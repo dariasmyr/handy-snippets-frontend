@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DeleteOutlined } from "@ant-design/icons";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import {
@@ -12,15 +12,14 @@ import {
   Segmented,
   Space,
   Tabs,
+  Typography,
 } from "antd";
-import { Typography } from "antd";
 
 import logo from "../../.github/logo.svg";
 
 import styles from "./__root.module.scss";
 
 const { Title } = Typography;
-
 const { TextArea } = Input;
 
 const confirm: PopconfirmProps["onConfirm"] = (event): void => {
@@ -38,46 +37,54 @@ export const Route = createLazyFileRoute("/")({
 });
 
 function Index(): JSX.Element {
-  // const { loading, data, error } = useGetAllFilmsQuery();
   const [activeTab, setActiveTab] = useState("1");
-
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [password, setPassword] = useState("");
+
+  const urlParameters = new URLSearchParams(window.location.search);
+  const documentId = urlParameters.get("documentId");
+  const accessKey = urlParameters.get("accessKey");
+  const urlPassword = urlParameters.get("password");
+
+  useEffect(() => {
+    if (documentId && accessKey) {
+      setActiveTab("2");
+    } else if (documentId && !urlPassword) {
+      showModal();
+    } else if (documentId && urlPassword) {
+      setActiveTab("2");
+    } else {
+      setActiveTab("1");
+    }
+  }, [documentId, accessKey, urlPassword]);
 
   const showModal = (): void => {
     setIsModalOpen(true);
   };
 
   const handleOk = (): void => {
-    setIsModalOpen(false);
+    if (password) {
+      setIsModalOpen(false);
+      setActiveTab("2");
+    } else {
+      message.error("Please enter the password.");
+    }
   };
 
   const handleCancel = (): void => {
     setIsModalOpen(false);
   };
 
-  const onChange = (key: string): void => {
-    if (key === "2") {
-      showModal();
-      setActiveTab(key);
-    } else {
-      setActiveTab(key);
-    }
-  };
-
   const items = [
     {
       key: "1",
-      label: "Tab 1",
+      label: "Create Document",
     },
     {
       key: "2",
-      label: "Tab 2",
+      label: "View/Edit Document",
     },
   ];
-
-  // if (loading) return <p>Loading...</p>;
-  // if (error) return <p>Error: {error.message}</p>;
-  // if (!data) return <p>No data!</p>;
 
   const renderContent = (): JSX.Element | null => {
     switch (activeTab) {
@@ -90,7 +97,7 @@ function Index(): JSX.Element {
                 <Button>Save</Button>
               </Flex>
               <Flex gap="small" wrap>
-                <Segmented<string>
+                <Segmented
                   options={["Copy to clipboard", "Raw"]}
                   onChange={(value) => {
                     console.log(value);
@@ -128,7 +135,7 @@ function Index(): JSX.Element {
               posuere cubilia Curae; Nullam nec ultrices odio. Nulla facilisi.
               Nullam nec ultrices odio. Nulla facilisi. Nullam nec ultrices
               odio. Nulla facilisi. Nullam nec ultrices odio. Nulla facilisi.
-              Nullam nec ultrices odio. Nulla facilisi. Nullam nec ultrices
+              Nullam nec ultrices odio. Nulla facilisi.
             </p>
           </Flex>
         );
@@ -149,17 +156,23 @@ function Index(): JSX.Element {
           }}
           defaultActiveKey="1"
           items={items}
-          onChange={onChange}
+          onChange={setActiveTab}
         />
       </div>
       <Modal
-        title="Basic Modal"
+        title="Enter Password"
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
       >
         <p>Enter your password to continue.</p>
-        <Input placeholder="Password" variant="filled" type="password" />
+        <Input
+          placeholder="Password"
+          variant="filled"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
       </Modal>
       {renderContent()}
     </Flex>
