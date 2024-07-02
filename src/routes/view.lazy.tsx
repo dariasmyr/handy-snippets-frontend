@@ -53,7 +53,7 @@ function View(): JSX.Element {
   });
 
   const [deleteDocument] = useDeleteDocumentMutation();
-  const [isShareModalOpen, setIsShareModalOpen] = useState(true);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] =
     useState(!passwordFromUrl);
   const [password, setPassword] = useState(passwordFromUrl || "");
@@ -102,7 +102,7 @@ function View(): JSX.Element {
     if (password) {
       setIsPasswordModalOpen(false);
     } else {
-      message.error(`Failed to decrypt document, password is missing`);
+      message.error("Password is required to view the document.");
     }
   };
 
@@ -128,6 +128,7 @@ function View(): JSX.Element {
         },
       });
       message.success("Document deleted successfully");
+      window.location.href = "/";
     } catch (error) {
       message.error(`Failed to delete document: ${error}`);
     }
@@ -137,7 +138,7 @@ function View(): JSX.Element {
     if (password) {
       return password + documentData;
     } else {
-      message.error(`Failed to decrypt document, password is missing`);
+      message.error("Failed to decrypt document, password is missing");
       return documentData;
     }
   };
@@ -210,7 +211,7 @@ function View(): JSX.Element {
   return (
     <Flex gap="middle" vertical>
       <Header tabOpened={"1"} />
-      {renderContent()}
+      {!isPasswordModalOpen && renderContent()}
       <Modal
         title="Enter Password"
         open={isPasswordModalOpen}
