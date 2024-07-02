@@ -231,10 +231,18 @@ function View(): JSX.Element {
         title="Share Document"
         open={isShareModalOpen}
         onCancel={handleCancel}
+        cancelButtonProps={{ style: { display: "none" } }}
+        okButtonProps={{ style: { display: "none" } }}
       >
         <p>Choose the access level for the document.</p>
-        <Checkbox onChange={handleGeneratingPublicLink}>Public</Checkbox>
-        <Checkbox onChange={handleGeneratingPrivateLink}>Private</Checkbox>
+        <Flex gap={"small"} vertical>
+          <Checkbox onChange={handleGeneratingPublicLink}>
+            Public access to anyone with the link
+          </Checkbox>
+          <Checkbox onChange={handleGeneratingPrivateLink}>
+            Private access to those with the password
+          </Checkbox>
+        </Flex>
       </Modal>
     </Flex>
   );
