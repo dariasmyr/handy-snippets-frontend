@@ -1,6 +1,4 @@
-// eslint-disable-next-line eslint-comments/disable-enable-pair
-/* eslint-disable unicorn/no-null */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DeleteOutlined } from "@ant-design/icons";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import {
@@ -44,9 +42,7 @@ function View(): JSX.Element {
   const passwordFromUrl = new URLSearchParams(window.location.search).get(
     "password",
   );
-  if (!documentIdFromUrl) {
-    window.location.href = "/";
-  }
+
   const {
     data: getDocumentData,
     loading: getDocumentLoading,
@@ -55,21 +51,25 @@ function View(): JSX.Element {
     variables: { id: Number.parseInt(documentIdFromUrl!) },
     skip: !documentIdFromUrl,
   });
+
   const [deleteDocument] = useDeleteDocumentMutation();
   const [isShareModalOpen, setIsShareModalOpen] = useState(true);
   const [isPasswordModalOpen, setIsPasswordModalOpen] =
     useState(!passwordFromUrl);
   const [password, setPassword] = useState(passwordFromUrl || "");
-  const [documentId, setDocumentId] = useState<number | null>(null);
-  const [accessKey, setAccessKey] = useState<string | null>(
-    accessKeyFromUrl || "",
-  );
-  const [documentTitle, setDocumentTitle] = useState<string>(
-    getDocumentData?.getDocument?.title || "",
-  );
-  const [documentData, setDocumentData] = useState<string>(
-    getDocumentData?.getDocument?.value || "",
-  );
+  const [documentTitle, setDocumentTitle] = useState<string>("");
+  const [documentData, setDocumentData] = useState<string>("");
+
+  useEffect(() => {
+    if (getDocumentData?.getDocument) {
+      setDocumentTitle(getDocumentData.getDocument.title || "Untitled");
+      setDocumentData(getDocumentData.getDocument.value);
+    }
+  }, [getDocumentData]);
+
+  if (!documentIdFromUrl) {
+    window.location.href = "/";
+  }
 
   if (getDocumentLoading) {
     return <div>Loading...</div>;
@@ -85,14 +85,14 @@ function View(): JSX.Element {
   };
 
   const handleGeneratingPublicLink = (): void => {
-    const url = `${window.location.origin}/?documentId=${documentId}&accessKey=${accessKey}&password=${password}`;
+    const url = `${window.location.origin}/view?documentId=${documentIdFromUrl}&accessKey=${accessKeyFromUrl}&password=${password}`;
     message.success("Copied to clipboard, share the link with others.");
     navigator.clipboard.writeText(url);
     setIsShareModalOpen(false);
   };
 
   const handleGeneratingPrivateLink = (): void => {
-    const url = `${window.location.origin}/?documentId=${documentId}&accessKey=${accessKey}`;
+    const url = `${window.location.origin}/view?documentId=${documentIdFromUrl}&accessKey=${accessKeyFromUrl}`;
     message.success("Copied to clipboard, share the link with others.");
     navigator.clipboard.writeText(url);
     setIsShareModalOpen(false);
@@ -116,17 +116,18 @@ function View(): JSX.Element {
   };
 
   const handleDeleteDocument = async (): Promise<void> => {
-    if (!documentId || !accessKey) {
+    if (!documentIdFromUrl || !accessKeyFromUrl) {
       message.error("Document ID or access key missing.");
       return;
     }
     try {
       await deleteDocument({
-        variables: { id: documentId, accessKey },
+        variables: {
+          id: Number(documentIdFromUrl),
+          accessKey: accessKeyFromUrl,
+        },
       });
       message.success("Document deleted successfully");
-      setDocumentId(null);
-      setAccessKey(null);
     } catch (error) {
       message.error(`Failed to delete document: ${error}`);
     }
@@ -142,22 +143,24 @@ function View(): JSX.Element {
   };
 
   const renderContent = (): JSX.Element => {
-    return accessKey ? (
+    return accessKeyFromUrl ? (
       <Flex gap="small" vertical>
         <Controls />
-        <Input
-          placeholder="Name of the document"
-          variant="filled"
-          value={documentTitle}
-          onChange={(event) => setDocumentTitle(event.target.value)}
-        />
-        <TextArea
-          rows={20}
-          placeholder="Document content"
-          variant="filled"
-          value={handleDecryptDocument()}
-          onChange={(event) => setDocumentData(event.target.value)}
-        />
+        <Flex gap="small" vertical>
+          <Input
+            placeholder="Name of the document"
+            variant="filled"
+            value={documentTitle}
+            onChange={(event) => setDocumentTitle(event.target.value)}
+          />
+          <TextArea
+            rows={20}
+            placeholder="Document content"
+            variant="filled"
+            value={handleDecryptDocument()}
+            onChange={(event) => setDocumentData(event.target.value)}
+          />
+        </Flex>
       </Flex>
     ) : (
       <Flex gap="small" vertical>
