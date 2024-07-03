@@ -1,7 +1,7 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable unicorn/no-null */
 import { useState } from "react";
-import { createLazyFileRoute } from "@tanstack/react-router";
+import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button, Flex, Input, message, Modal } from "antd";
 
 import { Header } from "../components/header.tsx";
@@ -23,6 +23,7 @@ function Index(): JSX.Element {
   const [password, setPassword] = useState<string | null>(null);
   const [documentTitle, setDocumentTitle] = useState<string | null>(null);
   const [documentData, setDocumentData] = useState<string | null>(null);
+  const navigate = useNavigate({ from: "/" });
   const showModal = (): void => {
     setIsModalOpen(true);
   };
@@ -44,8 +45,14 @@ function Index(): JSX.Element {
         });
         if (createDocumentData?.createDocument) {
           message.success("Document created successfully");
-          const url = `/view?documentId=${createDocumentData.createDocument}&accessKey=${accessKeyGenerated}&password=${password}`;
-          window.location.href = url;
+          await navigate({
+            to: "/view",
+            search: {
+              documentId: createDocumentData.createDocument.toString(),
+              accessKey: accessKeyGenerated,
+              password: password,
+            },
+          });
         }
       } catch (error) {
         message.error(`Failed to create document: ${error}`);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DeleteOutlined } from "@ant-design/icons";
-import { createLazyFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Button,
   Checkbox,
@@ -28,21 +28,27 @@ const cancel: PopconfirmProps["onCancel"] = (event): void => {
   message.error("Click on No");
 };
 
-export const Route = createLazyFileRoute("/view")({
+type ViewParameters = {
+  documentId: string;
+  accessKey: string;
+  password?: string | undefined;
+};
+
+export const Route = createFileRoute("/view")({
   component: View,
+  validateSearch: (parameters: ViewParameters): ViewParameters => {
+    if (!parameters.documentId) {
+      throw new Error("Document ID is missing");
+    }
+    return parameters;
+  },
 });
 
 function View(): JSX.Element {
-  const documentIdFromUrl = new URLSearchParams(window.location.search).get(
-    "documentId",
-  );
-  const accessKeyFromUrl = new URLSearchParams(window.location.search).get(
-    "accessKey",
-  );
-  const passwordFromUrl = new URLSearchParams(window.location.search).get(
-    "password",
-  );
-
+  const parameters = Route.useSearch();
+  const documentIdFromUrl = parameters.documentId;
+  const accessKeyFromUrl = parameters.accessKey;
+  const passwordFromUrl = parameters.password;
   const {
     data: getDocumentData,
     loading: getDocumentLoading,
@@ -59,6 +65,7 @@ function View(): JSX.Element {
   const [password, setPassword] = useState(passwordFromUrl || "");
   const [documentTitle, setDocumentTitle] = useState<string>("");
   const [documentData, setDocumentData] = useState<string>("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (getDocumentData?.getDocument) {
@@ -68,7 +75,7 @@ function View(): JSX.Element {
   }, [getDocumentData]);
 
   if (!documentIdFromUrl) {
-    window.location.href = "/";
+    navigate({ to: "/" });
   }
 
   if (getDocumentLoading) {
@@ -107,7 +114,7 @@ function View(): JSX.Element {
   };
 
   const handleGoToCreatePage = async (): Promise<void> => {
-    window.location.href = "/";
+    navigate({ to: "/" });
   };
 
   const handleCancel = (): void => {
@@ -128,7 +135,7 @@ function View(): JSX.Element {
         },
       });
       message.success("Document deleted successfully");
-      window.location.href = "/";
+      navigate({ to: "/" });
     } catch (error) {
       message.error(`Failed to delete document: ${error}`);
     }
