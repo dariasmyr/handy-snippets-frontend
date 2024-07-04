@@ -17,6 +17,7 @@ import { Route as rootRoute } from './../routes/__root'
 // Create Virtual Routes
 
 const ViewLazyImport = createFileRoute('/view')()
+const EditLazyImport = createFileRoute('/edit')()
 const IndexLazyImport = createFileRoute('/')()
 
 // Create/Update Routes
@@ -25,6 +26,11 @@ const ViewLazyRoute = ViewLazyImport.update({
   path: '/view',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./../routes/view.lazy').then((d) => d.Route))
+
+const EditLazyRoute = EditLazyImport.update({
+  path: '/edit',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./../routes/edit.lazy').then((d) => d.Route))
 
 const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
@@ -42,6 +48,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexLazyImport
       parentRoute: typeof rootRoute
     }
+    '/edit': {
+      id: '/edit'
+      path: '/edit'
+      fullPath: '/edit'
+      preLoaderRoute: typeof EditLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/view': {
       id: '/view'
       path: '/view'
@@ -56,6 +69,7 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   IndexLazyRoute,
+  EditLazyRoute,
   ViewLazyRoute,
 })
 
@@ -68,11 +82,15 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/edit",
         "/view"
       ]
     },
     "/": {
       "filePath": "index.lazy.tsx"
+    },
+    "/edit": {
+      "filePath": "edit.lazy.tsx"
     },
     "/view": {
       "filePath": "view.lazy.tsx"

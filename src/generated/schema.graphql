@@ -31,6 +31,7 @@ type Document {
 type Mutation {
   createDocument(input: CreateDocumentInput!): Int
   deleteDocument(accessKey: String!, id: Int!): Boolean
+  updateDocument(input: UpdateDocumentInput!): Boolean
 }
 
 type Query {
@@ -38,3 +39,12 @@ type Query {
 }
 
 scalar Time
+
+input UpdateDocumentInput {
+  accessKey: String!
+  id: Int!
+  maxViewCount: Int!
+  title: String
+  ttlMs: Int!
+  value: String
+}

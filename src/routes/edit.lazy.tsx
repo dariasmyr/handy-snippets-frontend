@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+} from "@ant-design/icons";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Button,
@@ -8,35 +12,46 @@ import {
   Input,
   message,
   Modal,
+  Popconfirm,
+  PopconfirmProps,
+  Space,
   Switch,
   Typography,
 } from "antd";
 
 import { Header } from "../components/header.tsx";
-import { useGetDocumentQuery } from "../generated/graphql.tsx";
+import {
+  useDeleteDocumentMutation,
+  useGetDocumentQuery,
+  useUpdateDocumentMutation,
+} from "../generated/graphql.tsx";
 
 import styles from "./__root.module.scss";
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
-type ViewParameters = {
+const cancel: PopconfirmProps["onCancel"] = (event): void => {
+  console.log(event);
+};
+
+type EditParameters = {
   documentId: string;
   accessKey: string;
   password?: string | undefined;
-  fromCreate?: boolean | undefined;
 };
 
-export const Route = createFileRoute("/view")({
-  component: View,
-  validateSearch: (parameters: ViewParameters): ViewParameters => {
-    if (!parameters.documentId) {
-      throw new Error("Document ID is missing");
+export const Route = createFileRoute("/edit")({
+  component: Edit,
+  validateSearch: (parameters: EditParameters): EditParameters => {
+    if (!parameters.documentId && !parameters.accessKey) {
+      throw new Error("Document ID or access key is missing");
     }
     return parameters;
   },
 });
 
-function View(): JSX.Element {
+function Edit(): JSX.Element {
+  const [updateDocument] = useUpdateDocumentMutation();
   const [sendPasswordSeparately, setSendPasswordSeparately] =
     useState<boolean>(false);
   const parameters = Route.useSearch();
@@ -48,7 +63,6 @@ function View(): JSX.Element {
   const documentIdFromUrl = parameters.documentId;
   const accessKeyFromUrl = parameters.accessKey;
   const passwordFromUrl = parameters.password;
-  const fromCreate = parameters.fromCreate;
   const {
     data: getDocumentData,
     loading: getDocumentLoading,
@@ -58,6 +72,7 @@ function View(): JSX.Element {
     skip: !documentIdFromUrl,
   });
 
+  const [deleteDocument] = useDeleteDocumentMutation();
   const [isAccesKeyAdded, setIsAccessKetAdded] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] =
@@ -73,12 +88,6 @@ function View(): JSX.Element {
       setDocumentData(getDocumentData.getDocument.value);
     }
   }, [getDocumentData]);
-
-  useEffect(() => {
-    if (fromCreate === true) {
-      setIsShareModalOpen(true);
-    }
-  }, [fromCreate]);
 
   if (!documentIdFromUrl) {
     navigate({ to: "/" });
@@ -121,6 +130,22 @@ function View(): JSX.Element {
     message.success("Password removed from link.");
   };
 
+  const handleUpdateDocument = async (): Promise<void> => {
+    const { data: updateDocumentData } = await updateDocument({
+      variables: {
+        id: getDocumentData!.getDocument!.id,
+        title: documentTitle,
+        value: documentData,
+        accessKey: accessKeyFromUrl,
+        ttlMs: getDocumentData!.getDocument!.ttlMs,
+        maxViewCount: getDocumentData!.getDocument!.maxViewCount,
+      },
+    });
+    if (updateDocumentData?.updateDocument) {
+      message.success("Document updated successfully");
+    }
+  };
+
   const handleShowDocument = async (): Promise<void> => {
     if (password) {
       setIsPasswordModalOpen(false);
@@ -133,20 +158,28 @@ function View(): JSX.Element {
     navigate({ to: "/" });
   };
 
-  const handleGoToEditPage = async (): Promise<void> => {
-    await navigate({
-      to: "/edit",
-      search: {
-        documentId: getDocumentData!.getDocument!.id.toString(),
-        accessKey: accessKeyFromUrl,
-        password: password,
-      },
-    });
-  };
-
   const handleCancel = (): void => {
     setIsPasswordModalOpen(false);
     setIsShareModalOpen(false);
+  };
+
+  const handleDeleteDocument = async (): Promise<void> => {
+    if (!documentIdFromUrl || !accessKeyFromUrl) {
+      message.error("Document ID or access key missing.");
+      return;
+    }
+    try {
+      await deleteDocument({
+        variables: {
+          id: Number(documentIdFromUrl),
+          accessKey: accessKeyFromUrl,
+        },
+      });
+      message.success("Document deleted successfully");
+      navigate({ to: "/" });
+    } catch (error) {
+      message.error(`Failed to delete document: ${error}`);
+    }
   };
 
   const handleDecryptDocument = (): string => {
@@ -159,38 +192,45 @@ function View(): JSX.Element {
   };
 
   const renderContent = (): JSX.Element => {
-    return accessKeyFromUrl ? (
+    return (
       <Flex gap="small" vertical>
-        <ViewControls />
+        <EditControls />
         <Flex gap="small" vertical>
-          <Title level={3} style={{ margin: 0 }}>
+          <Title
+            editable={{
+              onChange: setDocumentTitle,
+            }}
+            level={3}
+            style={{ margin: 0 }}
+          >
             {documentTitle}
           </Title>
           <div className={styles.border}>
-            <Text>{handleDecryptDocument()}</Text>
+            <Paragraph
+              editable={{
+                triggerType: ["text", "icon"],
+                onChange: setDocumentData,
+                maxLength: 100_000,
+                autoSize: { maxRows: 20, minRows: 3 },
+              }}
+            >
+              {handleDecryptDocument()}
+            </Paragraph>
           </div>
         </Flex>
-      </Flex>
-    ) : (
-      <Flex gap="small" vertical>
-        <ViewControls />
-        <Title level={3}>{documentTitle}</Title>
-        <div className={styles.border}>
-          <Text>{handleDecryptDocument()}</Text>
-        </div>
       </Flex>
     );
   };
 
-  const ViewControls = (): JSX.Element => {
+  const EditControls = (): JSX.Element => {
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
           <Button type="primary" onClick={handleGoToCreatePage}>
             Create new
           </Button>
-          <Button onClick={handleGoToEditPage} hidden={!accessKeyFromUrl}>
-            Edit
+          <Button onClick={handleUpdateDocument} hidden={!documentData}>
+            Save
           </Button>
         </Flex>
         <Flex gap="small" wrap>
@@ -206,6 +246,18 @@ function View(): JSX.Element {
           >
             Share
           </Button>
+          <Space>
+            <Popconfirm
+              title="Delete the task"
+              description="Are you sure to delete this task?"
+              onConfirm={handleDeleteDocument}
+              onCancel={cancel}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button shape="circle" danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          </Space>
         </Flex>
       </Flex>
     );
@@ -287,4 +339,4 @@ function View(): JSX.Element {
   );
 }
 
-export default View;
+export default Edit;

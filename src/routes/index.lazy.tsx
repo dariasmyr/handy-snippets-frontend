@@ -1,6 +1,7 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable unicorn/no-null */
 import { useState } from "react";
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button, Flex, Input, message, Modal } from "antd";
 
@@ -48,9 +49,10 @@ function Index(): JSX.Element {
           await navigate({
             to: "/view",
             search: {
-              documentId: createDocumentData.createDocument.toString(),
+              documentId: createDocumentData.createDocument,
               accessKey: accessKeyGenerated,
               password: password,
+              fromCreate: true,
             },
           });
         }
@@ -114,13 +116,17 @@ function Index(): JSX.Element {
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
+        okText="Generate"
       >
         <p>Enter your password to continue.</p>
-        <Input
+        <Input.Password
           placeholder="Password"
           variant="filled"
           type="password"
           value={password!}
+          iconRender={(visible) =>
+            visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+          }
           onChange={(event) => setPassword(event.target.value)}
         />
       </Modal>

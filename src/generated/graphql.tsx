@@ -44,6 +44,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   createDocument?: Maybe<Scalars['Int']['output']>;
   deleteDocument?: Maybe<Scalars['Boolean']['output']>;
+  updateDocument?: Maybe<Scalars['Boolean']['output']>;
 };
 
 
@@ -57,6 +58,11 @@ export type MutationDeleteDocumentArgs = {
   id: Scalars['Int']['input'];
 };
 
+
+export type MutationUpdateDocumentArgs = {
+  input: UpdateDocumentInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   getDocument?: Maybe<Document>;
@@ -65,6 +71,15 @@ export type Query = {
 
 export type QueryGetDocumentArgs = {
   id: Scalars['Int']['input'];
+};
+
+export type UpdateDocumentInput = {
+  accessKey: Scalars['String']['input'];
+  id: Scalars['Int']['input'];
+  maxViewCount: Scalars['Int']['input'];
+  title?: InputMaybe<Scalars['String']['input']>;
+  ttlMs: Scalars['Int']['input'];
+  value?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateDocumentMutationVariables = Exact<{
@@ -90,6 +105,18 @@ export type GetDocumentQueryVariables = Exact<{
 
 
 export type GetDocumentQuery = { __typename?: 'Query', getDocument?: { __typename?: 'Document', id: number, createdAt: any, updatedAt: any, title?: string | null, value: string, accessKey: string, viewCount: number, maxViewCount: number, ttlMs: number } | null };
+
+export type UpdateDocumentMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  title: Scalars['String']['input'];
+  value: Scalars['String']['input'];
+  accessKey: Scalars['String']['input'];
+  ttlMs: Scalars['Int']['input'];
+  maxViewCount: Scalars['Int']['input'];
+}>;
+
+
+export type UpdateDocumentMutation = { __typename?: 'Mutation', updateDocument?: boolean | null };
 
 
 export const CreateDocumentDocument = gql`
@@ -205,3 +232,41 @@ export type GetDocumentQueryHookResult = ReturnType<typeof useGetDocumentQuery>;
 export type GetDocumentLazyQueryHookResult = ReturnType<typeof useGetDocumentLazyQuery>;
 export type GetDocumentSuspenseQueryHookResult = ReturnType<typeof useGetDocumentSuspenseQuery>;
 export type GetDocumentQueryResult = Apollo.QueryResult<GetDocumentQuery, GetDocumentQueryVariables>;
+export const UpdateDocumentDocument = gql`
+    mutation UpdateDocument($id: Int!, $title: String!, $value: String!, $accessKey: String!, $ttlMs: Int!, $maxViewCount: Int!) {
+  updateDocument(
+    input: {id: $id, title: $title, value: $value, accessKey: $accessKey, ttlMs: $ttlMs, maxViewCount: $maxViewCount}
+  )
+}
+    `;
+export type UpdateDocumentMutationFn = Apollo.MutationFunction<UpdateDocumentMutation, UpdateDocumentMutationVariables>;
+
+/**
+ * __useUpdateDocumentMutation__
+ *
+ * To run a mutation, you first call `useUpdateDocumentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateDocumentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateDocumentMutation, { data, loading, error }] = useUpdateDocumentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      title: // value for 'title'
+ *      value: // value for 'value'
+ *      accessKey: // value for 'accessKey'
+ *      ttlMs: // value for 'ttlMs'
+ *      maxViewCount: // value for 'maxViewCount'
+ *   },
+ * });
+ */
+export function useUpdateDocumentMutation(baseOptions?: Apollo.MutationHookOptions<UpdateDocumentMutation, UpdateDocumentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateDocumentMutation, UpdateDocumentMutationVariables>(UpdateDocumentDocument, options);
+      }
+export type UpdateDocumentMutationHookResult = ReturnType<typeof useUpdateDocumentMutation>;
+export type UpdateDocumentMutationResult = Apollo.MutationResult<UpdateDocumentMutation>;
+export type UpdateDocumentMutationOptions = Apollo.BaseMutationOptions<UpdateDocumentMutation, UpdateDocumentMutationVariables>;

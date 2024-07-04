@@ -1,0 +1,17 @@
+mutation UpdateDocument(
+  $id: Int!,
+  $title: String!,
+  $value: String!,
+  $accessKey: String!,
+  $ttlMs: Int!,
+  $maxViewCount: Int!
+) {
+  updateDocument(input: {
+    id: $id,
+    title: $title,
+    value: $value,
+    accessKey: $accessKey,
+    ttlMs: $ttlMs,
+    maxViewCount: $maxViewCount
+  })
+}
