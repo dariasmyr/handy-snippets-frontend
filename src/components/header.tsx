@@ -29,7 +29,16 @@ export const Header = (properties: ITabProperties): ReactElement => {
     <div>
       <Tabs
         tabBarExtraContent={{
-          left: <img src={logo} alt="logo" className={styles.logo} />,
+          left: (
+            <img
+              src={logo}
+              alt="logo"
+              className={styles.logo}
+              onClick={(): void => {
+                window.location.href = "/";
+              }}
+            />
+          ),
         }}
         activeKey={properties.tabOpened}
         items={items}

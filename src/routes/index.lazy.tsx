@@ -3,7 +3,16 @@
 import { useState } from "react";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
-import { Button, Flex, Input, message, Modal } from "antd";
+import {
+  Button,
+  Flex,
+  Input,
+  message,
+  Modal,
+  Popconfirm,
+  PopconfirmProps,
+  Space,
+} from "antd";
 
 import { Header } from "../components/header.tsx";
 import { useCreateDocumentMutation } from "../generated/graphql.tsx";
@@ -13,6 +22,10 @@ const { TextArea } = Input;
 export const Route = createLazyFileRoute("/")({
   component: Index,
 });
+
+const cancel: PopconfirmProps["onCancel"] = (event): void => {
+  console.log(event);
+};
 
 const createAccessKey = (): string => {
   return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
@@ -49,7 +62,7 @@ function Index(): JSX.Element {
           await navigate({
             to: "/view",
             search: {
-              documentId: createDocumentData.createDocument,
+              id: createDocumentData.createDocument,
               accessKey: accessKeyGenerated,
               password: password,
               fromCreate: true,
@@ -83,9 +96,20 @@ function Index(): JSX.Element {
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
-          <Button type="primary" onClick={handleCreateNewDocument}>
-            Create new
-          </Button>
+          <Space>
+            <Popconfirm
+              title="Create new document?"
+              description="You will lose unsaved changes. Do you want to create a new document?"
+              onConfirm={handleCreateNewDocument}
+              onCancel={cancel}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type="primary" hidden={!documentData}>
+                Create new
+              </Button>
+            </Popconfirm>
+          </Space>
           <Button onClick={handleSaveDocument}>Save</Button>
         </Flex>
       </Flex>
@@ -118,7 +142,7 @@ function Index(): JSX.Element {
         onCancel={handleCancel}
         okText="Generate"
       >
-        <p>Enter your password to continue.</p>
+        <p>Enter your password to encrypt the document.</p>
         <Input.Password
           placeholder="Password"
           variant="filled"

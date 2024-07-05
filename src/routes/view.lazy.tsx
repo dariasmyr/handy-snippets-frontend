@@ -1,18 +1,25 @@
 import { useEffect, useState } from "react";
-import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
+import {
+  CopyOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+} from "@ant-design/icons";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Button,
-  Checkbox,
   Flex,
   Input,
   message,
   Modal,
-  Switch,
+  Popconfirm,
+  PopconfirmProps,
+  Space,
+  Tooltip,
   Typography,
 } from "antd";
 
 import { Header } from "../components/header.tsx";
+import { ShareModal } from "../components/share.tsx";
 import { useGetDocumentQuery } from "../generated/graphql.tsx";
 
 import styles from "./__root.module.scss";
@@ -20,16 +27,20 @@ import styles from "./__root.module.scss";
 const { Title, Text } = Typography;
 
 type ViewParameters = {
-  documentId: string;
+  id: string;
   accessKey: string;
   password?: string | undefined;
   fromCreate?: boolean | undefined;
 };
 
+const cancel: PopconfirmProps["onCancel"] = (event): void => {
+  console.log(event);
+};
+
 export const Route = createFileRoute("/view")({
   component: View,
   validateSearch: (parameters: ViewParameters): ViewParameters => {
-    if (!parameters.documentId) {
+    if (!parameters.id) {
       throw new Error("Document ID is missing");
     }
     return parameters;
@@ -37,28 +48,20 @@ export const Route = createFileRoute("/view")({
 });
 
 function View(): JSX.Element {
-  const [sendPasswordSeparately, setSendPasswordSeparately] =
-    useState<boolean>(false);
   const parameters = Route.useSearch();
-  const [link, setLink] = useState<string>(
-    `${window.location.origin}/view?documentId=${parameters.documentId}&accessKey=${parameters.accessKey}${
-      parameters.password ? `&password=${parameters.password}` : ""
-    }`,
-  );
-  const documentIdFromUrl = parameters.documentId;
-  const accessKeyFromUrl = parameters.accessKey;
-  const passwordFromUrl = parameters.password;
+  const idFromUrl: string = parameters.id;
+  const accessKeyFromUrl: string | undefined = parameters.accessKey;
+  const passwordFromUrl: string | undefined = parameters.password;
   const fromCreate = parameters.fromCreate;
   const {
     data: getDocumentData,
     loading: getDocumentLoading,
     error: getDocumentError,
   } = useGetDocumentQuery({
-    variables: { id: Number.parseInt(documentIdFromUrl!) },
-    skip: !documentIdFromUrl,
+    variables: { id: Number.parseInt(idFromUrl!) },
+    skip: !idFromUrl,
   });
 
-  const [isAccesKeyAdded, setIsAccessKetAdded] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] =
     useState(!passwordFromUrl);
@@ -80,7 +83,7 @@ function View(): JSX.Element {
     }
   }, [fromCreate]);
 
-  if (!documentIdFromUrl) {
+  if (!idFromUrl) {
     navigate({ to: "/" });
   }
 
@@ -95,30 +98,6 @@ function View(): JSX.Element {
   const handleCopyToClipboard = (): void => {
     navigator.clipboard.writeText(documentData);
     message.success("Copied to clipboard.");
-  };
-
-  const handleCopyLink = (): void => {
-    message.success("Copied to clipboard, share the link with others.");
-    navigator.clipboard.writeText(link);
-    setIsShareModalOpen(false);
-  };
-
-  const handleToggleAccessKeyParameter = (): void => {
-    if (isAccesKeyAdded === true) {
-      const newLink = link.replace(/&accessKey=[^&]*/, "");
-      setLink(newLink);
-      setIsAccessKetAdded(false);
-    } else {
-      const newLink = `${link}&accessKey=${accessKeyFromUrl}`;
-      setLink(newLink);
-      setIsAccessKetAdded(true);
-    }
-  };
-
-  const handleRemovePasswordFromLink = (): void => {
-    const newLink = link.replace(/&password=[^&]*/, "");
-    setLink(newLink);
-    message.success("Password removed from link.");
   };
 
   const handleShowDocument = async (): Promise<void> => {
@@ -137,7 +116,7 @@ function View(): JSX.Element {
     await navigate({
       to: "/edit",
       search: {
-        documentId: getDocumentData!.getDocument!.id.toString(),
+        id: getDocumentData!.getDocument!.id,
         accessKey: accessKeyFromUrl,
         password: password,
       },
@@ -160,7 +139,7 @@ function View(): JSX.Element {
 
   const renderContent = (): JSX.Element => {
     return accessKeyFromUrl ? (
-      <Flex gap="small" vertical>
+      <Flex gap="middle" vertical>
         <ViewControls />
         <Flex gap="small" vertical>
           <Title level={3} style={{ margin: 0 }}>
@@ -186,26 +165,35 @@ function View(): JSX.Element {
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
-          <Button type="primary" onClick={handleGoToCreatePage}>
-            Create new
-          </Button>
-          <Button onClick={handleGoToEditPage} hidden={!accessKeyFromUrl}>
-            Edit
-          </Button>
+          <Popconfirm
+            title="Create new document?"
+            description="You will lose unsaved changes. Do you want to create a new document?"
+            onConfirm={handleGoToCreatePage}
+            onCancel={cancel}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button type="primary">Create new</Button>
+          </Popconfirm>
+          {accessKeyFromUrl && (
+            <Button onClick={handleGoToEditPage}>Edit</Button>
+          )}
         </Flex>
         <Flex gap="small" wrap>
-          <Button type={"dashed"} onClick={handleCopyToClipboard}>
-            Copy to clipboard
-          </Button>
-          <Button
-            type={"default"}
-            onClick={(): void => {
-              setIsShareModalOpen(true);
-            }}
-            hidden={!accessKeyFromUrl || !password}
-          >
-            Share
-          </Button>
+          <Space.Compact block>
+            <Tooltip title="Copy to clipboard">
+              <Button icon={<CopyOutlined />} onClick={handleCopyToClipboard} />
+            </Tooltip>
+            <Button
+              type={"default"}
+              onClick={(): void => {
+                setIsShareModalOpen(true);
+              }}
+              hidden={!accessKeyFromUrl || !password}
+            >
+              Share
+            </Button>
+          </Space.Compact>
         </Flex>
       </Flex>
     );
@@ -221,7 +209,7 @@ function View(): JSX.Element {
         onOk={handleShowDocument}
         onCancel={handleCancel}
       >
-        <p>Enter your password to continue.</p>
+        <p>Enter your password to decrypt the document.</p>
         <Input.Password
           placeholder="Password"
           variant="filled"
@@ -233,56 +221,13 @@ function View(): JSX.Element {
           onChange={(event) => setPassword(event.target.value)}
         />
       </Modal>
-      <Modal
-        title="Share Document"
-        open={isShareModalOpen}
-        onCancel={handleCancel}
-      >
-        <Flex gap={"middle"} vertical>
-          <Flex gap={"middle"} vertical>
-            <Title level={3}>Choose the access level for the document.</Title>
-            <Flex gap={"small"}>
-              <Switch
-                checked={sendPasswordSeparately}
-                onChange={(checked) => {
-                  setSendPasswordSeparately(checked);
-                  if (checked) {
-                    handleRemovePasswordFromLink();
-                  } else {
-                    setLink(`${link}&password=${password}`);
-                  }
-                }}
-              />
-              <Text>Send password separately</Text>
-            </Flex>
-            <Flex gap={"small"}>
-              <Text>{link}</Text>
-              <Button type={"primary"} onClick={handleCopyLink}>
-                Copy link
-              </Button>
-            </Flex>
-          </Flex>
-          <Flex gap={"small"} vertical>
-            <Checkbox onChange={handleToggleAccessKeyParameter}>
-              Add access key so that others could edit the document
-            </Checkbox>
-            <Flex
-              gap={"small"}
-              justify={"flex-end"}
-              align={"center"}
-              hidden={sendPasswordSeparately}
-            >
-              <Text>{password}</Text>
-              <Button
-                type={"primary"}
-                onClick={() => navigator.clipboard.writeText(password)}
-              >
-                Copy password
-              </Button>
-            </Flex>
-          </Flex>
-        </Flex>
-      </Modal>
+      <ShareModal
+        id={idFromUrl}
+        password={password}
+        isShareModalOpen={isShareModalOpen}
+        setIsShareModalOpen={setIsShareModalOpen}
+        accessKey={accessKeyFromUrl}
+      />
     </Flex>
   );
 }
