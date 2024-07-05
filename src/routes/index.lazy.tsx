@@ -92,25 +92,32 @@ function Index(): JSX.Element {
     }
   };
 
+  const renderCreateButton = (): JSX.Element => {
+    return documentData === null ? (
+      <Button type="primary" onClick={handleCreateNewDocument}>
+        Create new
+      </Button>
+    ) : (
+      <Flex gap="small" wrap>
+        <Popconfirm
+          title="Are you sure to create a new document?"
+          onConfirm={handleCreateNewDocument}
+          onCancel={cancel}
+          okText="Yes"
+          cancelText="No"
+        >
+          <Button type="primary">Create new</Button>
+        </Popconfirm>
+        <Button onClick={handleSaveDocument}>Save</Button>
+      </Flex>
+    );
+  };
+
   const Controls = (): JSX.Element => {
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
-          <Space>
-            <Popconfirm
-              title="Create new document?"
-              description="You will lose unsaved changes. Do you want to create a new document?"
-              onConfirm={handleCreateNewDocument}
-              onCancel={cancel}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Button type="primary" hidden={!documentData}>
-                Create new
-              </Button>
-            </Popconfirm>
-          </Space>
-          <Button onClick={handleSaveDocument}>Save</Button>
+          <Space>{renderCreateButton()}</Space>
         </Flex>
       </Flex>
     );
