@@ -70,6 +70,7 @@ export const ShareModal = ({
     if (password) {
       navigator.clipboard.writeText(password);
       message.success("Password copied to clipboard.");
+      handleCancel();
     }
   };
 
