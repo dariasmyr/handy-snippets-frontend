@@ -31,6 +31,10 @@ const createAccessKey = (): string => {
   return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
 };
 
+const toBase64 = (password: string): string => {
+  return btoa(password);
+};
+
 function Index(): JSX.Element {
   const [createDocument] = useCreateDocumentMutation();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -40,6 +44,10 @@ function Index(): JSX.Element {
   const navigate = useNavigate({ from: "/" });
   const showModal = (): void => {
     setIsModalOpen(true);
+  };
+
+  const handleGeneratePassword = (): void => {
+    setPassword(toBase64(Math.random().toString(36).slice(-8)));
   };
 
   const handleOk = async (): Promise<void> => {
@@ -64,7 +72,7 @@ function Index(): JSX.Element {
             search: {
               id: createDocumentData.createDocument,
               accessKey: accessKeyGenerated,
-              password: password,
+              password: toBase64(password),
               fromCreate: true,
             },
           });
@@ -80,8 +88,8 @@ function Index(): JSX.Element {
   };
 
   const handleCreateNewDocument = (): void => {
-    setDocumentTitle("");
-    setDocumentData("");
+    setDocumentTitle(null);
+    setDocumentData(null);
   };
 
   const handleSaveDocument = (): void => {
@@ -108,7 +116,6 @@ function Index(): JSX.Element {
         >
           <Button type="primary">Create new</Button>
         </Popconfirm>
-        <Button onClick={handleSaveDocument}>Save</Button>
       </Flex>
     );
   };
@@ -118,6 +125,7 @@ function Index(): JSX.Element {
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
           <Space>{renderCreateButton()}</Space>
+          <Button onClick={handleSaveDocument}>Save</Button>
         </Flex>
       </Flex>
     );
@@ -129,14 +137,14 @@ function Index(): JSX.Element {
       <Flex gap="small" vertical>
         <Controls />
         <Input
-          placeholder="Name of the document"
+          placeholder="Name me!"
           variant="filled"
           value={documentTitle || ""}
           onChange={(event) => setDocumentTitle(event.target.value)}
         />
         <TextArea
           rows={20}
-          placeholder="Document content"
+          placeholder="Time to write something awesome!"
           variant="filled"
           value={documentData || ""}
           onChange={(event) => setDocumentData(event.target.value)}
@@ -147,19 +155,23 @@ function Index(): JSX.Element {
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
-        okText="Generate"
       >
         <p>Enter your password to encrypt the document.</p>
-        <Input.Password
-          placeholder="Password"
-          variant="filled"
-          type="password"
-          value={password!}
-          iconRender={(visible) =>
-            visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-          }
-          onChange={(event) => setPassword(event.target.value)}
-        />
+        <Flex justify="start" gap={"small"}>
+          <Button type="dashed" onClick={handleGeneratePassword}>
+            Generate
+          </Button>
+          <Input.Password
+            placeholder="Password"
+            variant="filled"
+            type="password"
+            value={password!}
+            iconRender={(visible) =>
+              visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+            }
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </Flex>
       </Modal>
     </Flex>
   );

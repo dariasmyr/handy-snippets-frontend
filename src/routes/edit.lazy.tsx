@@ -163,12 +163,14 @@ function Edit(): JSX.Element {
         <EditControls />
         <Flex gap="small" vertical>
           <Input
+            placeholder="Name me!"
             variant="filled"
             value={documentTitle}
             onChange={(event) => setDocumentTitle(event.target.value)}
           />
           <TextArea
             rows={20}
+            placeholder="Time to write something awesome!"
             variant="filled"
             value={handleDecryptDocument()}
             onChange={(event) => setDocumentData(event.target.value)}
@@ -238,17 +240,19 @@ function Edit(): JSX.Element {
         onOk={handleShowDocument}
         onCancel={handleCancel}
       >
-        <p>Enter your password to continue.</p>
-        <Input.Password
-          placeholder="Password"
-          variant="filled"
-          type="password"
-          value={password!}
-          iconRender={(visible) =>
-            visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-          }
-          onChange={(event) => setPassword(event.target.value)}
-        />
+        <p>Enter your password to decrypt the document.</p>
+        <Flex justify="start" gap={"small"}>
+          <Input.Password
+            placeholder="Password"
+            variant="filled"
+            type="password"
+            value={password!}
+            iconRender={(visible) =>
+              visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+            }
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </Flex>
       </Modal>
       <ShareModal
         id={idFromUrl}

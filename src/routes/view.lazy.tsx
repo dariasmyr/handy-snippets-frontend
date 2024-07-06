@@ -37,6 +37,10 @@ const cancel: PopconfirmProps["onCancel"] = (event): void => {
   console.log(event);
 };
 
+const toBase64 = (password: string): string => {
+  return btoa(password);
+};
+
 export const Route = createFileRoute("/view")({
   component: View,
   validateSearch: (parameters: ViewParameters): ViewParameters => {
@@ -118,7 +122,7 @@ function View(): JSX.Element {
       search: {
         id: getDocumentData!.getDocument!.id,
         accessKey: accessKeyFromUrl,
-        password: password,
+        password: toBase64(password),
       },
     });
   };
@@ -210,16 +214,18 @@ function View(): JSX.Element {
         onCancel={handleCancel}
       >
         <p>Enter your password to decrypt the document.</p>
-        <Input.Password
-          placeholder="Password"
-          variant="filled"
-          type="password"
-          value={password!}
-          iconRender={(visible) =>
-            visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-          }
-          onChange={(event) => setPassword(event.target.value)}
-        />
+        <Flex justify="start" gap={"small"}>
+          <Input.Password
+            placeholder="Password"
+            variant="filled"
+            type="password"
+            value={password!}
+            iconRender={(visible) =>
+              visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+            }
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </Flex>
       </Modal>
       <ShareModal
         id={idFromUrl}
