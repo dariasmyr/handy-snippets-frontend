@@ -17,6 +17,7 @@ import { Route as rootRoute } from './../routes/__root'
 // Create Virtual Routes
 
 const ViewLazyImport = createFileRoute('/view')()
+const HelpLazyImport = createFileRoute('/help')()
 const EditLazyImport = createFileRoute('/edit')()
 const IndexLazyImport = createFileRoute('/')()
 
@@ -26,6 +27,11 @@ const ViewLazyRoute = ViewLazyImport.update({
   path: '/view',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./../routes/view.lazy').then((d) => d.Route))
+
+const HelpLazyRoute = HelpLazyImport.update({
+  path: '/help',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./../routes/help.lazy').then((d) => d.Route))
 
 const EditLazyRoute = EditLazyImport.update({
   path: '/edit',
@@ -55,6 +61,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EditLazyImport
       parentRoute: typeof rootRoute
     }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/view': {
       id: '/view'
       path: '/view'
@@ -70,6 +83,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   IndexLazyRoute,
   EditLazyRoute,
+  HelpLazyRoute,
   ViewLazyRoute,
 })
 
@@ -83,6 +97,7 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/",
         "/edit",
+        "/help",
         "/view"
       ]
     },
@@ -91,6 +106,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/edit": {
       "filePath": "edit.lazy.tsx"
+    },
+    "/help": {
+      "filePath": "help.lazy.tsx"
     },
     "/view": {
       "filePath": "view.lazy.tsx"
