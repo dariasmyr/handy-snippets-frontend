@@ -1,4 +1,5 @@
 import { ReactElement } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Tabs } from "antd";
 
 import logo from "../../.github/logo.svg";
@@ -25,6 +26,16 @@ const items = [
 ];
 
 export const Header = (properties: ITabProperties): ReactElement => {
+  const navigate = useNavigate();
+
+  const handleTabChange = (key: string): void => {
+    if (key === "3") {
+      navigate({ to: "/help" });
+    } else if (key === "1") {
+      navigate({ to: "/" });
+    }
+  };
+
   return (
     <div>
       <Tabs
@@ -42,6 +53,7 @@ export const Header = (properties: ITabProperties): ReactElement => {
         }}
         activeKey={properties.tabOpened}
         items={items}
+        onChange={handleTabChange}
       />
     </div>
   );
