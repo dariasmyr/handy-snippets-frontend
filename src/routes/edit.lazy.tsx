@@ -48,6 +48,10 @@ export const Route = createFileRoute("/edit")({
   },
 });
 
+const toBase64 = (password: string): string => {
+  return btoa(password);
+};
+
 function Edit(): JSX.Element {
   const [updateDocument] = useUpdateDocumentMutation();
   const parameters = Route.useSearch();
@@ -109,6 +113,14 @@ function Edit(): JSX.Element {
     });
     if (updateDocumentData?.updateDocument) {
       message.success("Document updated successfully");
+      await navigate({
+        to: "/view",
+        search: {
+          id: getDocumentData!.getDocument!.id,
+          accessKey: accessKeyFromUrl,
+          password: toBase64(password),
+        },
+      });
     }
   };
 
@@ -148,15 +160,6 @@ function Edit(): JSX.Element {
     }
   };
 
-  const handleDecryptDocument = (): string => {
-    if (password) {
-      return password + documentData;
-    } else {
-      message.error("Failed to decrypt document, password is missing");
-      return documentData;
-    }
-  };
-
   const renderContent = (): JSX.Element => {
     return (
       <Flex gap="small" vertical>
@@ -172,7 +175,7 @@ function Edit(): JSX.Element {
             rows={20}
             placeholder="Time to write something awesome!"
             variant="filled"
-            value={handleDecryptDocument()}
+            value={documentData}
             onChange={(event) => setDocumentData(event.target.value)}
           />
         </Flex>
