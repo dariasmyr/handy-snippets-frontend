@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-null */
 import { useEffect, useState } from "react";
 import {
   CopyOutlined,
@@ -5,9 +6,11 @@ import {
   EyeInvisibleOutlined,
   EyeTwoTone,
 } from "@ant-design/icons";
+import { TinyColor } from "@ctrl/tinycolor";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Button,
+  ConfigProvider,
   Flex,
   Input,
   message,
@@ -51,6 +54,11 @@ export const Route = createFileRoute("/edit")({
 const toBase64 = (password: string): string => {
   return btoa(password);
 };
+
+const getHoverColors = (colors: string[]): string[] =>
+  colors.map((color) => new TinyColor(color).lighten(5).toString());
+const getActiveColors = (colors: string[]): string[] =>
+  colors.map((color) => new TinyColor(color).darken(5).toString());
 
 function Edit(): JSX.Element {
   const [updateDocument] = useUpdateDocumentMutation();
@@ -183,7 +191,16 @@ function Edit(): JSX.Element {
     );
   };
 
+  const renderSaveButton = (): JSX.Element | null => {
+    return documentData === null || documentData === "" ? null : (
+      <Button type={"primary"} onClick={handleUpdateDocument}>
+        Save
+      </Button>
+    );
+  };
+
   const EditControls = (): JSX.Element => {
+    const colors1 = ["#6253E1", "#04BEFE"];
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
@@ -197,9 +214,20 @@ function Edit(): JSX.Element {
           >
             <Button type="primary">Create new</Button>
           </Popconfirm>
-          <Button onClick={handleUpdateDocument} hidden={!documentData}>
-            Save
-          </Button>
+          <ConfigProvider
+            theme={{
+              components: {
+                Button: {
+                  colorPrimary: `linear-gradient(135deg, ${colors1.join(", ")})`,
+                  colorPrimaryHover: `linear-gradient(135deg, ${getHoverColors(colors1).join(", ")})`,
+                  colorPrimaryActive: `linear-gradient(135deg, ${getActiveColors(colors1).join(", ")})`,
+                  lineWidth: 0,
+                },
+              },
+            }}
+          >
+            {renderSaveButton()}
+          </ConfigProvider>
         </Flex>
         <Flex gap="small" wrap>
           <Space.Compact block>

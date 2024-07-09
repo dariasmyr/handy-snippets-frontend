@@ -2,9 +2,11 @@
 /* eslint-disable unicorn/no-null */
 import { useState } from "react";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
+import { TinyColor } from "@ctrl/tinycolor";
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Button,
+  ConfigProvider,
   Flex,
   Input,
   message,
@@ -35,12 +37,18 @@ const toBase64 = (password: string): string => {
   return btoa(password);
 };
 
+const getHoverColors = (colors: string[]): string[] =>
+  colors.map((color) => new TinyColor(color).lighten(5).toString());
+const getActiveColors = (colors: string[]): string[] =>
+  colors.map((color) => new TinyColor(color).darken(5).toString());
+
 function Index(): JSX.Element {
   const [createDocument] = useCreateDocumentMutation();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [password, setPassword] = useState<string | null>(null);
   const [documentTitle, setDocumentTitle] = useState<string | null>(null);
   const [documentData, setDocumentData] = useState<string | null>(null);
+
   const navigate = useNavigate({ from: "/" });
   const showModal = (): void => {
     setIsModalOpen(true);
@@ -101,7 +109,7 @@ function Index(): JSX.Element {
   };
 
   const renderCreateButton = (): JSX.Element => {
-    return documentData === null ? (
+    return documentData === null || documentData === "" ? (
       <Button type="primary" onClick={handleCreateNewDocument}>
         Create new
       </Button>
@@ -120,12 +128,34 @@ function Index(): JSX.Element {
     );
   };
 
+  const renderSaveButton = (): JSX.Element | null => {
+    return documentData === null || documentData === "" ? null : (
+      <Button type={"primary"} onClick={handleSaveDocument}>
+        Save
+      </Button>
+    );
+  };
+
   const Controls = (): JSX.Element => {
+    const colors1 = ["#6253E1", "#04BEFE"];
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
           <Space>{renderCreateButton()}</Space>
-          <Button onClick={handleSaveDocument}>Save</Button>
+          <ConfigProvider
+            theme={{
+              components: {
+                Button: {
+                  colorPrimary: `linear-gradient(135deg, ${colors1.join(", ")})`,
+                  colorPrimaryHover: `linear-gradient(135deg, ${getHoverColors(colors1).join(", ")})`,
+                  colorPrimaryActive: `linear-gradient(135deg, ${getActiveColors(colors1).join(", ")})`,
+                  lineWidth: 0,
+                },
+              },
+            }}
+          >
+            {renderSaveButton()}
+          </ConfigProvider>
         </Flex>
       </Flex>
     );
