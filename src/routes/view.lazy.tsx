@@ -66,6 +66,7 @@ function View(): JSX.Element {
     skip: !idFromUrl,
   });
 
+  const [backgroundColor, setBackgroundColor] = useState("#fafafa");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] =
     useState(!passwordFromUrl);
@@ -86,6 +87,22 @@ function View(): JSX.Element {
       setIsShareModalOpen(true);
     }
   }, [fromCreate]);
+
+  useEffect(() => {
+    const darkModeMediaQuery = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    );
+    const handleDarkModeChange = (event: MediaQueryListEvent): void => {
+      setBackgroundColor(event.matches ? "#333" : "#fafafa");
+    };
+
+    setBackgroundColor(darkModeMediaQuery.matches ? "#333" : "#fafafa");
+    darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
+
+    return (): void => {
+      darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
+    };
+  }, []);
 
   if (!idFromUrl) {
     navigate({ to: "/" });
@@ -149,7 +166,7 @@ function View(): JSX.Element {
           <Title level={3} style={{ margin: 0 }}>
             {documentTitle}
           </Title>
-          <div className={styles.border}>
+          <div className={styles.border} style={{ backgroundColor }}>
             <Text>{handleDecryptDocument()}</Text>
           </div>
         </Flex>

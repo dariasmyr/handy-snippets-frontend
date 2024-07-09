@@ -1,4 +1,5 @@
-/* eslint-disable unicorn/no-null */
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable unicorn/no-null,no-magic-numbers */
 import { useEffect, useState } from "react";
 import {
   CopyOutlined,

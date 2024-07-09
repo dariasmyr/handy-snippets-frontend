@@ -55,6 +55,7 @@ function Index(): JSX.Element {
   };
 
   const handleGeneratePassword = (): void => {
+    // eslint-disable-next-line no-magic-numbers
     setPassword(toBase64(Math.random().toString(36).slice(-8)));
   };
 
