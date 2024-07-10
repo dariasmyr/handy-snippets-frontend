@@ -18,6 +18,7 @@ import {
   Typography,
 } from "antd";
 
+import { useCryptoCore } from "../common/use-crypto-core.ts";
 import { Header } from "../components/header.tsx";
 import { ShareModal } from "../components/share.tsx";
 import { useGetDocumentQuery } from "../generated/graphql.tsx";
@@ -29,16 +30,13 @@ const { Title, Text } = Typography;
 type ViewParameters = {
   id: string;
   accessKey: string;
+  encryptedKey: string;
   password?: string | undefined;
   fromCreate?: boolean | undefined;
 };
 
 const cancel: PopconfirmProps["onCancel"] = (event): void => {
   console.log(event);
-};
-
-const toBase64 = (password: string): string => {
-  return btoa(password);
 };
 
 export const Route = createFileRoute("/view")({
@@ -55,6 +53,7 @@ function View(): JSX.Element {
   const parameters = Route.useSearch();
   const idFromUrl: string = parameters.id;
   const accessKeyFromUrl: string | undefined = parameters.accessKey;
+  const encryptedKeyFromUrl: string = parameters.encryptedKey;
   const passwordFromUrl: string | undefined = parameters.password;
   const fromCreate = parameters.fromCreate;
   const {
@@ -74,13 +73,24 @@ function View(): JSX.Element {
   const [documentTitle, setDocumentTitle] = useState<string>("");
   const [documentData, setDocumentData] = useState<string>("");
   const navigate = useNavigate();
+  const cryptoCore = useCryptoCore();
 
   useEffect(() => {
-    if (getDocumentData?.getDocument) {
-      setDocumentTitle(getDocumentData.getDocument.title || "Untitled");
-      setDocumentData(getDocumentData.getDocument.value);
+    if (!password) {
+      return;
     }
-  }, [getDocumentData]);
+    if (getDocumentData?.getDocument?.value) {
+      const decryptedKey = cryptoCore.decryptKey(encryptedKeyFromUrl, password);
+
+      const decryptedData = cryptoCore.decrypt(
+        getDocumentData.getDocument.value,
+        decryptedKey,
+      );
+
+      setDocumentTitle(decryptedData.title);
+      setDocumentData(decryptedData.value);
+    }
+  }, [getDocumentData, encryptedKeyFromUrl, password, cryptoCore]);
 
   useEffect(() => {
     if (fromCreate === true) {
@@ -139,7 +149,8 @@ function View(): JSX.Element {
       search: {
         id: getDocumentData!.getDocument!.id,
         accessKey: accessKeyFromUrl,
-        password: toBase64(password),
+        encryptedKey: encryptedKeyFromUrl,
+        password: password,
       },
     });
   };
@@ -147,15 +158,6 @@ function View(): JSX.Element {
   const handleCancel = (): void => {
     setIsPasswordModalOpen(false);
     setIsShareModalOpen(false);
-  };
-
-  const handleDecryptDocument = (): string => {
-    if (password) {
-      return password + documentData;
-    } else {
-      message.error("Failed to decrypt document, password is missing");
-      return documentData;
-    }
   };
 
   const renderContent = (): JSX.Element => {
@@ -167,7 +169,7 @@ function View(): JSX.Element {
             {documentTitle}
           </Title>
           <div className={styles.border} style={{ backgroundColor }}>
-            <Text>{handleDecryptDocument()}</Text>
+            <Text>{documentData}</Text>
           </div>
         </Flex>
       </Flex>
@@ -176,7 +178,7 @@ function View(): JSX.Element {
         <ViewControls />
         <Title level={3}>{documentTitle}</Title>
         <div className={styles.border}>
-          <Text>{handleDecryptDocument()}</Text>
+          <Text>{documentData}</Text>
         </div>
       </Flex>
     );

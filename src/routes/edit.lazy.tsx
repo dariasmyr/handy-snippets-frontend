@@ -22,6 +22,7 @@ import {
   Tooltip,
 } from "antd";
 
+import { useCryptoCore } from "../common/use-crypto-core.ts";
 import { Header } from "../components/header.tsx";
 import { ShareModal } from "../components/share.tsx";
 import {
@@ -39,6 +40,7 @@ const cancel: PopconfirmProps["onCancel"] = (event): void => {
 type EditParameters = {
   id: string;
   accessKey: string;
+  encryptedKey: string;
   password?: string | undefined;
 };
 
@@ -52,10 +54,6 @@ export const Route = createFileRoute("/edit")({
   },
 });
 
-const toBase64 = (password: string): string => {
-  return btoa(password);
-};
-
 const getHoverColors = (colors: string[]): string[] =>
   colors.map((color) => new TinyColor(color).lighten(5).toString());
 const getActiveColors = (colors: string[]): string[] =>
@@ -66,6 +64,7 @@ function Edit(): JSX.Element {
   const parameters = Route.useSearch();
   const idFromUrl: string = parameters.id;
   const accessKeyFromUrl: string | undefined = parameters.accessKey;
+  const encryptedKeyFromUrl: string = parameters.encryptedKey;
   const passwordFromUrl: string | undefined = parameters.password;
   const {
     data: getDocumentData,
@@ -75,6 +74,7 @@ function Edit(): JSX.Element {
     variables: { id: Number.parseInt(idFromUrl!) },
     skip: !idFromUrl,
   });
+  const cryptoCore = useCryptoCore();
 
   const [deleteDocument] = useDeleteDocumentMutation();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -86,9 +86,19 @@ function Edit(): JSX.Element {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (getDocumentData?.getDocument) {
-      setDocumentTitle(getDocumentData.getDocument.title || "Untitled");
-      setDocumentData(getDocumentData.getDocument.value);
+    if (!password) {
+      return;
+    }
+    if (getDocumentData?.getDocument?.value) {
+      const decryptedKey = cryptoCore.decryptKey(encryptedKeyFromUrl, password);
+
+      const decryptedData = cryptoCore.decrypt(
+        getDocumentData.getDocument.value,
+        decryptedKey,
+      );
+
+      setDocumentTitle(decryptedData.title);
+      setDocumentData(decryptedData.value);
     }
   }, [getDocumentData]);
 
@@ -127,7 +137,7 @@ function Edit(): JSX.Element {
         search: {
           id: getDocumentData!.getDocument!.id,
           accessKey: accessKeyFromUrl,
-          password: toBase64(password),
+          password: password,
         },
       });
     }

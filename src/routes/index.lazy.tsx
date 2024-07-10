@@ -16,6 +16,7 @@ import {
   Space,
 } from "antd";
 
+import { useCryptoCore } from "../common/use-crypto-core.ts";
 import { Header } from "../components/header.tsx";
 import { useCreateDocumentMutation } from "../generated/graphql.tsx";
 
@@ -29,14 +30,6 @@ const cancel: PopconfirmProps["onCancel"] = (event): void => {
   console.log(event);
 };
 
-const createAccessKey = (): string => {
-  return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
-};
-
-const toBase64 = (password: string): string => {
-  return btoa(password);
-};
-
 const getHoverColors = (colors: string[]): string[] =>
   colors.map((color) => new TinyColor(color).lighten(5).toString());
 const getActiveColors = (colors: string[]): string[] =>
@@ -48,6 +41,7 @@ function Index(): JSX.Element {
   const [password, setPassword] = useState<string | null>(null);
   const [documentTitle, setDocumentTitle] = useState<string | null>(null);
   const [documentData, setDocumentData] = useState<string | null>(null);
+  const cryptoCore = useCryptoCore();
 
   const navigate = useNavigate({ from: "/" });
   const showModal = (): void => {
@@ -55,20 +49,27 @@ function Index(): JSX.Element {
   };
 
   const handleGeneratePassword = (): void => {
-    // eslint-disable-next-line no-magic-numbers
-    setPassword(toBase64(Math.random().toString(36).slice(-8)));
+    const PASSWORD_LENGTH = 32;
+    setPassword(cryptoCore.generatePassword(PASSWORD_LENGTH));
   };
 
   const handleOk = async (): Promise<void> => {
     if (password) {
       setIsModalOpen(false);
       try {
-        const accessKeyGenerated = createAccessKey();
-        // TODO: Encrypt document data
+        const accessKeyGenerated = cryptoCore.generateKey();
+        const key = cryptoCore.generateKey();
+        const encryptedKey = cryptoCore.encryptKey(key, password);
+
+        const encryptedData = cryptoCore.encrypt(
+          { title: documentTitle, value: documentData },
+          key,
+        );
+
         const { data: createDocumentData } = await createDocument({
           variables: {
-            title: documentTitle || "Untitled",
-            value: documentData || "",
+            title: "", // todo remove it from backend completely
+            value: encryptedData,
             accessKey: accessKeyGenerated,
           },
         });
@@ -79,7 +80,8 @@ function Index(): JSX.Element {
             search: {
               id: createDocumentData.createDocument,
               accessKey: accessKeyGenerated,
-              password: toBase64(password),
+              encryptedKey,
+              password: password,
               fromCreate: true,
             },
           });
@@ -101,9 +103,9 @@ function Index(): JSX.Element {
     setDocumentData(null);
   };
 
-  const handleSaveDocument = (): void => {
+  const handleSaveDocument = async (): Promise<void> => {
     if (documentData === null) {
-      message.error("Document data cannot be empty");
+      await message.error("Document data cannot be empty");
     } else {
       showModal();
     }
