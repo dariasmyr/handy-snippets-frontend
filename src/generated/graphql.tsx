@@ -22,7 +22,6 @@ export type Scalars = {
 export type CreateDocumentInput = {
   accessKey: Scalars['String']['input'];
   maxViewCount?: InputMaybe<Scalars['Int']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
   ttlMs?: InputMaybe<Scalars['Int']['input']>;
   value: Scalars['String']['input'];
 };
@@ -33,7 +32,6 @@ export type Document = {
   createdAt: Scalars['Time']['output'];
   id: Scalars['Int']['output'];
   maxViewCount: Scalars['Int']['output'];
-  title?: Maybe<Scalars['String']['output']>;
   ttlMs: Scalars['Int']['output'];
   updatedAt: Scalars['Time']['output'];
   value: Scalars['String']['output'];
@@ -77,13 +75,11 @@ export type UpdateDocumentInput = {
   accessKey: Scalars['String']['input'];
   id: Scalars['Int']['input'];
   maxViewCount: Scalars['Int']['input'];
-  title?: InputMaybe<Scalars['String']['input']>;
   ttlMs: Scalars['Int']['input'];
   value?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateDocumentMutationVariables = Exact<{
-  title: Scalars['String']['input'];
   value: Scalars['String']['input'];
   accessKey: Scalars['String']['input'];
 }>;
@@ -104,11 +100,10 @@ export type GetDocumentQueryVariables = Exact<{
 }>;
 
 
-export type GetDocumentQuery = { __typename?: 'Query', getDocument?: { __typename?: 'Document', id: number, createdAt: any, updatedAt: any, title?: string | null, value: string, accessKey: string, viewCount: number, maxViewCount: number, ttlMs: number } | null };
+export type GetDocumentQuery = { __typename?: 'Query', getDocument?: { __typename?: 'Document', id: number, createdAt: any, updatedAt: any, value: string, accessKey: string, viewCount: number, maxViewCount: number, ttlMs: number } | null };
 
 export type UpdateDocumentMutationVariables = Exact<{
   id: Scalars['Int']['input'];
-  title: Scalars['String']['input'];
   value: Scalars['String']['input'];
   accessKey: Scalars['String']['input'];
   ttlMs: Scalars['Int']['input'];
@@ -120,8 +115,8 @@ export type UpdateDocumentMutation = { __typename?: 'Mutation', updateDocument?:
 
 
 export const CreateDocumentDocument = gql`
-    mutation CreateDocument($title: String!, $value: String!, $accessKey: String!) {
-  createDocument(input: {title: $title, value: $value, accessKey: $accessKey})
+    mutation CreateDocument($value: String!, $accessKey: String!) {
+  createDocument(input: {value: $value, accessKey: $accessKey})
 }
     `;
 export type CreateDocumentMutationFn = Apollo.MutationFunction<CreateDocumentMutation, CreateDocumentMutationVariables>;
@@ -139,7 +134,6 @@ export type CreateDocumentMutationFn = Apollo.MutationFunction<CreateDocumentMut
  * @example
  * const [createDocumentMutation, { data, loading, error }] = useCreateDocumentMutation({
  *   variables: {
- *      title: // value for 'title'
  *      value: // value for 'value'
  *      accessKey: // value for 'accessKey'
  *   },
@@ -190,7 +184,6 @@ export const GetDocumentDocument = gql`
     id
     createdAt
     updatedAt
-    title
     value
     accessKey
     viewCount
@@ -233,9 +226,9 @@ export type GetDocumentLazyQueryHookResult = ReturnType<typeof useGetDocumentLaz
 export type GetDocumentSuspenseQueryHookResult = ReturnType<typeof useGetDocumentSuspenseQuery>;
 export type GetDocumentQueryResult = Apollo.QueryResult<GetDocumentQuery, GetDocumentQueryVariables>;
 export const UpdateDocumentDocument = gql`
-    mutation UpdateDocument($id: Int!, $title: String!, $value: String!, $accessKey: String!, $ttlMs: Int!, $maxViewCount: Int!) {
+    mutation UpdateDocument($id: Int!, $value: String!, $accessKey: String!, $ttlMs: Int!, $maxViewCount: Int!) {
   updateDocument(
-    input: {id: $id, title: $title, value: $value, accessKey: $accessKey, ttlMs: $ttlMs, maxViewCount: $maxViewCount}
+    input: {id: $id, value: $value, accessKey: $accessKey, ttlMs: $ttlMs, maxViewCount: $maxViewCount}
   )
 }
     `;
@@ -255,7 +248,6 @@ export type UpdateDocumentMutationFn = Apollo.MutationFunction<UpdateDocumentMut
  * const [updateDocumentMutation, { data, loading, error }] = useUpdateDocumentMutation({
  *   variables: {
  *      id: // value for 'id'
- *      title: // value for 'title'
  *      value: // value for 'value'
  *      accessKey: // value for 'accessKey'
  *      ttlMs: // value for 'ttlMs'

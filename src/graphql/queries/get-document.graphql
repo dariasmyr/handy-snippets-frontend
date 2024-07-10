@@ -3,7 +3,6 @@ query GetDocument($id: Int!) {
     id
     createdAt
     updatedAt
-    title
     value
     accessKey
     viewCount

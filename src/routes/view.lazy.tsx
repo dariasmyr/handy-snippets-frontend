@@ -11,8 +11,6 @@ import {
   Input,
   message,
   Modal,
-  Popconfirm,
-  PopconfirmProps,
   Space,
   Tooltip,
   Typography,
@@ -33,10 +31,6 @@ type ViewParameters = {
   encryptedKey: string;
   password?: string | undefined;
   fromCreate?: boolean | undefined;
-};
-
-const cancel: PopconfirmProps["onCancel"] = (event): void => {
-  console.log(event);
 };
 
 export const Route = createFileRoute("/view")({
@@ -65,7 +59,7 @@ function View(): JSX.Element {
     skip: !idFromUrl,
   });
 
-  const [backgroundColor, setBackgroundColor] = useState("#fafafa");
+  const [backgroundColor, setBackgroundColor] = useState("#333");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] =
     useState(!passwordFromUrl);
@@ -202,7 +196,7 @@ function View(): JSX.Element {
       <Flex gap="small" vertical>
         <ViewControls />
         <Title level={3}>{documentTitle}</Title>
-        <div className={styles.border}>
+        <div className={styles.border} style={{ backgroundColor }}>
           <Text>
             {documentData.split("\n").map((line, index) => (
               <span key={index}>
@@ -220,16 +214,9 @@ function View(): JSX.Element {
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
-          <Popconfirm
-            title="Create new document?"
-            description="You will lose unsaved changes. Do you want to create a new document?"
-            onConfirm={handleGoToCreatePage}
-            onCancel={cancel}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="primary">Create new</Button>
-          </Popconfirm>
+          <Button onClick={handleGoToCreatePage} type="primary">
+            Create new
+          </Button>
           {accessKeyFromUrl && (
             <Button onClick={handleGoToEditPage}>Edit</Button>
           )}

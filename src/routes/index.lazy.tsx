@@ -2,11 +2,9 @@
 /* eslint-disable unicorn/no-null */
 import { useState } from "react";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
-import { TinyColor } from "@ctrl/tinycolor";
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Button,
-  ConfigProvider,
   Flex,
   Input,
   message,
@@ -30,18 +28,16 @@ const cancel: PopconfirmProps["onCancel"] = (event): void => {
   console.log(event);
 };
 
-const getHoverColors = (colors: string[]): string[] =>
-  colors.map((color) => new TinyColor(color).lighten(5).toString());
-const getActiveColors = (colors: string[]): string[] =>
-  colors.map((color) => new TinyColor(color).darken(5).toString());
-
 function Index(): JSX.Element {
   const [createDocument] = useCreateDocumentMutation();
+  const cryptoCore = useCryptoCore();
+
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [password, setPassword] = useState<string | null>(null);
+  const [password, setPassword] = useState<string | null>(
+    cryptoCore.generatePassword(32),
+  );
   const [documentTitle, setDocumentTitle] = useState<string | null>(null);
   const [documentData, setDocumentData] = useState<string | null>(null);
-  const cryptoCore = useCryptoCore();
 
   const navigate = useNavigate({ from: "/" });
   const showModal = (): void => {
@@ -68,7 +64,6 @@ function Index(): JSX.Element {
 
         const { data: createDocumentData } = await createDocument({
           variables: {
-            title: "", // todo remove it from backend completely
             value: encryptedData,
             accessKey: accessKeyGenerated,
           },
@@ -133,32 +128,16 @@ function Index(): JSX.Element {
 
   const renderSaveButton = (): JSX.Element | null => {
     return documentData === null || documentData === "" ? null : (
-      <Button type={"primary"} onClick={handleSaveDocument}>
-        Save
-      </Button>
+      <Button onClick={handleSaveDocument}>Save</Button>
     );
   };
 
   const Controls = (): JSX.Element => {
-    const colors1 = ["#6253E1", "#04BEFE"];
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
           <Space>{renderCreateButton()}</Space>
-          <ConfigProvider
-            theme={{
-              components: {
-                Button: {
-                  colorPrimary: `linear-gradient(135deg, ${colors1.join(", ")})`,
-                  colorPrimaryHover: `linear-gradient(135deg, ${getHoverColors(colors1).join(", ")})`,
-                  colorPrimaryActive: `linear-gradient(135deg, ${getActiveColors(colors1).join(", ")})`,
-                  lineWidth: 0,
-                },
-              },
-            }}
-          >
-            {renderSaveButton()}
-          </ConfigProvider>
+          {renderSaveButton()}
         </Flex>
       </Flex>
     );

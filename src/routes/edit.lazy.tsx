@@ -1,5 +1,5 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
-/* eslint-disable unicorn/no-null,no-magic-numbers */
+/* eslint-disable unicorn/no-null */
 import { useEffect, useState } from "react";
 import {
   CopyOutlined,
@@ -7,11 +7,9 @@ import {
   EyeInvisibleOutlined,
   EyeTwoTone,
 } from "@ant-design/icons";
-import { TinyColor } from "@ctrl/tinycolor";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Button,
-  ConfigProvider,
   Flex,
   Input,
   message,
@@ -54,11 +52,6 @@ export const Route = createFileRoute("/edit")({
   },
 });
 
-const getHoverColors = (colors: string[]): string[] =>
-  colors.map((color) => new TinyColor(color).lighten(5).toString());
-const getActiveColors = (colors: string[]): string[] =>
-  colors.map((color) => new TinyColor(color).darken(5).toString());
-
 function Edit(): JSX.Element {
   const [updateDocument] = useUpdateDocumentMutation();
   const parameters = Route.useSearch();
@@ -86,11 +79,14 @@ function Edit(): JSX.Element {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!password) {
+    if (!passwordFromUrl) {
       return;
     }
     if (getDocumentData?.getDocument?.value) {
-      const decryptedKey = cryptoCore.decryptKey(encryptedKeyFromUrl, password);
+      const decryptedKey = cryptoCore.decryptKey(
+        encryptedKeyFromUrl,
+        passwordFromUrl,
+      );
 
       const decryptedData = cryptoCore.decrypt(
         getDocumentData.getDocument.value,
@@ -100,7 +96,7 @@ function Edit(): JSX.Element {
       setDocumentTitle(decryptedData.title);
       setDocumentData(decryptedData.value);
     }
-  }, [getDocumentData]);
+  }, [getDocumentData, encryptedKeyFromUrl, passwordFromUrl]);
 
   if (!idFromUrl) {
     navigate({ to: "/" });
@@ -120,32 +116,56 @@ function Edit(): JSX.Element {
   };
 
   const handleUpdateDocument = async (): Promise<void> => {
-    const { data: updateDocumentData } = await updateDocument({
-      variables: {
-        id: getDocumentData!.getDocument!.id,
-        title: documentTitle,
-        value: documentData,
-        accessKey: accessKeyFromUrl,
-        ttlMs: getDocumentData!.getDocument!.ttlMs,
-        maxViewCount: getDocumentData!.getDocument!.maxViewCount,
-      },
-    });
-    if (updateDocumentData?.updateDocument) {
-      message.success("Document updated successfully");
-      await navigate({
-        to: "/view",
-        search: {
+    try {
+      const decryptedKey = cryptoCore.decryptKey(encryptedKeyFromUrl, password);
+      const encryptedData = cryptoCore.encrypt(
+        { title: documentTitle, value: documentData },
+        decryptedKey,
+      );
+      const { data: updateDocumentData } = await updateDocument({
+        variables: {
           id: getDocumentData!.getDocument!.id,
+          value: encryptedData,
           accessKey: accessKeyFromUrl,
-          password: password,
+          ttlMs: getDocumentData!.getDocument!.ttlMs,
+          maxViewCount: getDocumentData!.getDocument!.maxViewCount,
         },
       });
+      if (updateDocumentData?.updateDocument) {
+        message.success("Document updated successfully");
+        await navigate({
+          to: "/view",
+          search: {
+            id: getDocumentData!.getDocument!.id,
+            accessKey: accessKeyFromUrl,
+            encryptedKey: encryptedKeyFromUrl,
+            password: password,
+          },
+        });
+      }
+    } catch (error) {
+      message.error(`Failed to update document: ${error}`);
     }
   };
 
   const handleShowDocument = async (): Promise<void> => {
     if (password) {
       setIsPasswordModalOpen(false);
+
+      if (getDocumentData?.getDocument?.value) {
+        const decryptedKey = cryptoCore.decryptKey(
+          encryptedKeyFromUrl,
+          password,
+        );
+
+        const decryptedData = cryptoCore.decrypt(
+          getDocumentData.getDocument.value,
+          decryptedKey,
+        );
+
+        setDocumentTitle(decryptedData.title);
+        setDocumentData(decryptedData.value);
+      }
     } else {
       message.error("Password is required to view the document.");
     }
@@ -204,41 +224,18 @@ function Edit(): JSX.Element {
 
   const renderSaveButton = (): JSX.Element | null => {
     return documentData === null || documentData === "" ? null : (
-      <Button type={"primary"} onClick={handleUpdateDocument}>
-        Save
-      </Button>
+      <Button onClick={handleUpdateDocument}>Save</Button>
     );
   };
 
   const EditControls = (): JSX.Element => {
-    const colors1 = ["#6253E1", "#04BEFE"];
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
-          <Popconfirm
-            title="Create new document?"
-            description="You will lose unsaved changes. Do you want to create a new document?"
-            onConfirm={handleGoToCreatePage}
-            onCancel={cancel}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="primary">Create new</Button>
-          </Popconfirm>
-          <ConfigProvider
-            theme={{
-              components: {
-                Button: {
-                  colorPrimary: `linear-gradient(135deg, ${colors1.join(", ")})`,
-                  colorPrimaryHover: `linear-gradient(135deg, ${getHoverColors(colors1).join(", ")})`,
-                  colorPrimaryActive: `linear-gradient(135deg, ${getActiveColors(colors1).join(", ")})`,
-                  lineWidth: 0,
-                },
-              },
-            }}
-          >
-            {renderSaveButton()}
-          </ConfigProvider>
+          <Button onClick={handleGoToCreatePage} type="primary">
+            Create new
+          </Button>
+          {renderSaveButton()}
         </Flex>
         <Flex gap="small" wrap>
           <Space.Compact block>

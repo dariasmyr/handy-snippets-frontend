@@ -1,6 +1,5 @@
 mutation UpdateDocument(
   $id: Int!,
-  $title: String!,
   $value: String!,
   $accessKey: String!,
   $ttlMs: Int!,
@@ -8,7 +7,6 @@ mutation UpdateDocument(
 ) {
   updateDocument(input: {
     id: $id,
-    title: $title,
     value: $value,
     accessKey: $accessKey,
     ttlMs: $ttlMs,
