@@ -76,11 +76,14 @@ function View(): JSX.Element {
   const cryptoCore = useCryptoCore();
 
   useEffect(() => {
-    if (!password) {
+    if (!passwordFromUrl) {
       return;
     }
     if (getDocumentData?.getDocument?.value) {
-      const decryptedKey = cryptoCore.decryptKey(encryptedKeyFromUrl, password);
+      const decryptedKey = cryptoCore.decryptKey(
+        encryptedKeyFromUrl,
+        passwordFromUrl,
+      );
 
       const decryptedData = cryptoCore.decrypt(
         getDocumentData.getDocument.value,
@@ -90,7 +93,7 @@ function View(): JSX.Element {
       setDocumentTitle(decryptedData.title);
       setDocumentData(decryptedData.value);
     }
-  }, [getDocumentData, encryptedKeyFromUrl, password, cryptoCore]);
+  }, [getDocumentData, encryptedKeyFromUrl, passwordFromUrl, cryptoCore]);
 
   useEffect(() => {
     if (fromCreate === true) {
@@ -134,6 +137,21 @@ function View(): JSX.Element {
   const handleShowDocument = async (): Promise<void> => {
     if (password) {
       setIsPasswordModalOpen(false);
+
+      if (getDocumentData?.getDocument?.value) {
+        const decryptedKey = cryptoCore.decryptKey(
+          encryptedKeyFromUrl,
+          password,
+        );
+
+        const decryptedData = cryptoCore.decrypt(
+          getDocumentData.getDocument.value,
+          decryptedKey,
+        );
+
+        setDocumentTitle(decryptedData.title);
+        setDocumentData(decryptedData.value);
+      }
     } else {
       message.error("Password is required to view the document.");
     }
