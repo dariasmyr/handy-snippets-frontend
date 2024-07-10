@@ -60,9 +60,7 @@ function Index(): JSX.Element {
   };
 
   const handleOk = async (): Promise<void> => {
-    if (password === null) {
-      message.error("Password cannot be empty");
-    } else {
+    if (password) {
       setIsModalOpen(false);
       try {
         const accessKeyGenerated = createAccessKey();
@@ -89,6 +87,8 @@ function Index(): JSX.Element {
       } catch (error) {
         message.error(`Failed to create document: ${error}`);
       }
+    } else {
+      message.error("Password cannot be empty");
     }
   };
 
