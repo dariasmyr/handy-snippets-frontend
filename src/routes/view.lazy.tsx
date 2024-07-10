@@ -187,7 +187,14 @@ function View(): JSX.Element {
             {documentTitle}
           </Title>
           <div className={styles.border} style={{ backgroundColor }}>
-            <Text>{documentData}</Text>
+            <Text>
+              {documentData.split("\n").map((line, index) => (
+                <span key={index}>
+                  {line}
+                  <br />
+                </span>
+              ))}
+            </Text>
           </div>
         </Flex>
       </Flex>
@@ -196,7 +203,14 @@ function View(): JSX.Element {
         <ViewControls />
         <Title level={3}>{documentTitle}</Title>
         <div className={styles.border}>
-          <Text>{documentData}</Text>
+          <Text>
+            {documentData.split("\n").map((line, index) => (
+              <span key={index}>
+                {line}
+                <br />
+              </span>
+            ))}
+          </Text>
         </div>
       </Flex>
     );
