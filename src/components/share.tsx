@@ -18,6 +18,7 @@ export interface IShareProperties {
   isShareModalOpen: boolean;
   setIsShareModalOpen: (open: boolean) => void;
   accessKey?: string;
+  encryptedKey: string;
 }
 
 export const ShareModal = ({
@@ -26,6 +27,7 @@ export const ShareModal = ({
   isShareModalOpen,
   setIsShareModalOpen,
   accessKey,
+  encryptedKey,
 }: IShareProperties): JSX.Element => {
   const [isAccessKeyAdded, setIsAccessKeyAdded] = useState(false);
   const [sendPasswordSeparately, setSendPasswordSeparately] =
@@ -35,11 +37,12 @@ export const ShareModal = ({
   useEffect(() => {
     const generateLink = (): string => {
       let baseLink = `${window.location.origin}/view?id=${id}`;
+      baseLink += `&encryptedKey=${encryptedKey}`;
       if (password && !sendPasswordSeparately) {
-        baseLink += `&password=${password}`;
+        baseLink += `&password="${password}"`;
       }
       if (password && sendPasswordSeparately) {
-        baseLink = baseLink.replace(`&password=${password}`, "");
+        baseLink = baseLink.replace(`&password="${password}"`, "");
       }
       if (accessKey && isAccessKeyAdded) {
         baseLink += `&accessKey=${accessKey}`;

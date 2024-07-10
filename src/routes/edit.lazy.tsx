@@ -301,6 +301,7 @@ function Edit(): JSX.Element {
         isShareModalOpen={isShareModalOpen}
         setIsShareModalOpen={setIsShareModalOpen}
         accessKey={accessKeyFromUrl}
+        encryptedKey={encryptedKeyFromUrl}
       />
     </Flex>
   );
