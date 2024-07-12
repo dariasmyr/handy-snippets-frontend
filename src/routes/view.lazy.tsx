@@ -118,7 +118,10 @@ function View(): JSX.Element {
   const [documentTitle, setDocumentTitle] = useState<string>("");
   const [documentData, setDocumentData] = useState<string>("");
   const [codeLanguage, setCodeLanguage] = useState<string | undefined>();
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isDarkTheme, setIsDarkTheme] = useState<boolean>(
+    window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches,
+  );
   const navigate = useNavigate();
   const cryptoCore = useCryptoCore();
 
@@ -154,20 +157,15 @@ function View(): JSX.Element {
   }, [fromCreate]);
 
   useEffect(() => {
-    const darkModeMediaQuery = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    );
-    const handleDarkModeChange = (event: MediaQueryListEvent): void => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleThemeChange = (event: MediaQueryListEvent): void => {
       setBackgroundColor(event.matches ? "#333" : "#fafafa");
-      setIsDarkMode(event.matches);
+      setIsDarkTheme(event.matches);
     };
-
-    console.log(isDarkMode, "isDarkMode");
-    darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
-
-    return (): void => {
-      darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
-    };
+    console.log(mediaQuery);
+    mediaQuery.addEventListener("change", handleThemeChange);
+    return (): void =>
+      mediaQuery.removeEventListener("change", handleThemeChange);
   }, []);
 
   if (!idFromUrl) {
@@ -251,11 +249,11 @@ function View(): JSX.Element {
                 language={codeLanguage}
                 padding={15}
                 style={{
-                  backgroundColor: "#f5f5f5",
+                  backgroundColor: backgroundColor,
                   fontFamily:
                     "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
                 }}
-                data-color-mode={isDarkMode ? "dark" : "light"}
+                data-color-mode={isDarkTheme ? "dark" : "light"}
               />
             ) : (
               <Text>
@@ -281,11 +279,11 @@ function View(): JSX.Element {
               language={codeLanguage}
               padding={15}
               style={{
-                backgroundColor: "#f5f5f5",
+                backgroundColor: backgroundColor,
                 fontFamily:
                   "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
               }}
-              data-color-mode={isDarkMode ? "dark" : "light"}
+              data-color-mode={isDarkTheme ? "dark" : "light"}
             />
           ) : (
             <Text>

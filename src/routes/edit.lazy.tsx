@@ -307,6 +307,7 @@ function Edit(): JSX.Element {
         id={idFromUrl}
         isShareModalOpen={isShareModalOpen}
         setIsShareModalOpen={setIsShareModalOpen}
+        password={password}
         accessKey={accessKeyFromUrl}
         encryptedKey={encryptedKeyFromUrl}
       />
