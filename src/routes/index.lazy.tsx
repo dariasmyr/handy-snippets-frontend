@@ -13,7 +13,6 @@ import {
   PopconfirmProps,
   Space,
 } from "antd";
-import { Buffer } from "node:buffer";
 
 import { useCryptoCore } from "../common/use-crypto-core.ts";
 import { Header } from "../components/header.tsx";
@@ -30,7 +29,7 @@ const cancel: PopconfirmProps["onCancel"] = (event): void => {
 };
 
 const encodeBase64 = (data: string): string => {
-  return Buffer.from(data).toString("base64");
+  return btoa(data);
 };
 
 function Index(): JSX.Element {

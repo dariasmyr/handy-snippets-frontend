@@ -16,7 +16,6 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { Buffer } from "node:buffer";
 
 import { useCryptoCore } from "../common/use-crypto-core.ts";
 import { Header } from "../components/header.tsx";
@@ -46,10 +45,10 @@ export const Route = createFileRoute("/view")({
 });
 
 const encodeBase64 = (data: string): string => {
-  return Buffer.from(data).toString("base64");
+  return btoa(data);
 };
 const decodeBase64 = (data: string): string => {
-  return Buffer.from(data, "base64").toString("ascii");
+  return atob(data);
 };
 
 const languageMapping: Record<string, string> = {

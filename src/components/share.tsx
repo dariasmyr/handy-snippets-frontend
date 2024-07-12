@@ -9,7 +9,6 @@ import {
   Switch,
   Typography,
 } from "antd";
-import { Buffer } from "node:buffer";
 
 const { Title, Text } = Typography;
 
@@ -21,9 +20,8 @@ export interface IShareProperties {
   accessKey?: string;
   encryptedKey: string;
 }
-
 const decodeBase64 = (data: string): string => {
-  return Buffer.from(data, "base64").toString("ascii");
+  return atob(data);
 };
 
 export const ShareModal = ({
