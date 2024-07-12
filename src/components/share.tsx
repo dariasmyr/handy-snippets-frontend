@@ -9,6 +9,7 @@ import {
   Switch,
   Typography,
 } from "antd";
+import { Buffer } from "node:buffer";
 
 const { Title, Text } = Typography;
 

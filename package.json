@@ -41,6 +41,7 @@
     "@graphql-codegen/typescript-react-apollo": "4.3.0",
     "@tanstack/react-router": "^1.35.3",
     "@tanstack/router-devtools": "^1.35.3",
+    "@uiw/react-textarea-code-editor": "^3.0.2",
     "antd": "^5.18.3",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",

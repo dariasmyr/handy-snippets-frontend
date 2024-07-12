@@ -5,6 +5,7 @@ import {
   EyeTwoTone,
 } from "@ant-design/icons";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import CodeEditor from "@uiw/react-textarea-code-editor";
 import {
   Button,
   Flex,
@@ -15,6 +16,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
+import { Buffer } from "node:buffer";
 
 import { useCryptoCore } from "../common/use-crypto-core.ts";
 import { Header } from "../components/header.tsx";
@@ -50,6 +52,49 @@ const decodeBase64 = (data: string): string => {
   return Buffer.from(data, "base64").toString("ascii");
 };
 
+const languageMapping: Record<string, string> = {
+  js: "javascript",
+  ts: "typescript",
+  jsx: "jsx",
+  tsx: "tsx",
+  html: "html",
+  css: "css",
+  json: "json",
+  py: "python",
+  java: "java",
+  cpp: "cpp",
+  c: "c",
+  cs: "csharp",
+  php: "php",
+  rb: "ruby",
+  swift: "swift",
+  kotlin: "kotlin",
+  md: "markdown",
+  sh: "shell",
+  sql: "sql",
+  xml: "xml",
+  yaml: "yaml",
+  yml: "yaml",
+  rs: "rust",
+  go: "go",
+  lua: "lua",
+  r: "r",
+  ini: "ini",
+  dockerfile: "dockerfile",
+  bat: "bat",
+  cmd: "bat",
+  perl: "perl",
+  pl: "perl",
+  scala: "scala",
+  groovy: "groovy",
+  scss: "scss",
+  sass: "sass",
+  less: "less",
+  coffee: "coffeescript",
+  txt: "plaintext",
+  log: "plaintext",
+};
+
 function View(): JSX.Element {
   const parameters = Route.useSearch();
   const idFromUrl: string = parameters.id;
@@ -73,6 +118,8 @@ function View(): JSX.Element {
   const [password, setPassword] = useState(passwordFromUrl || "");
   const [documentTitle, setDocumentTitle] = useState<string>("");
   const [documentData, setDocumentData] = useState<string>("");
+  const [codeLanguage, setCodeLanguage] = useState<string | undefined>();
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const navigate = useNavigate();
   const cryptoCore = useCryptoCore();
 
@@ -93,6 +140,11 @@ function View(): JSX.Element {
 
       setDocumentTitle(decryptedData.title);
       setDocumentData(decryptedData.value);
+
+      const fileExtension = decryptedData.title.split(".").pop();
+      if (fileExtension && languageMapping[fileExtension]) {
+        setCodeLanguage(languageMapping[fileExtension]);
+      }
     }
   }, [getDocumentData, encryptedKeyFromUrl, passwordFromUrl, cryptoCore]);
 
@@ -108,9 +160,11 @@ function View(): JSX.Element {
     );
     const handleDarkModeChange = (event: MediaQueryListEvent): void => {
       setBackgroundColor(event.matches ? "#333" : "#fafafa");
+      setIsDarkMode(event.matches);
     };
 
     setBackgroundColor(darkModeMediaQuery.matches ? "#333" : "#fafafa");
+    setIsDarkMode(darkModeMediaQuery.matches);
     darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
 
     return (): void => {
@@ -152,6 +206,11 @@ function View(): JSX.Element {
 
         setDocumentTitle(decryptedData.title);
         setDocumentData(decryptedData.value);
+
+        const fileExtension = decryptedData.title.split(".").pop();
+        if (fileExtension) {
+          setCodeLanguage(languageMapping[fileExtension]);
+        }
       }
     } else {
       message.error("Password is required to view the document.");
@@ -188,14 +247,28 @@ function View(): JSX.Element {
             {documentTitle}
           </Title>
           <div className={styles.border} style={{ backgroundColor }}>
-            <Text>
-              {documentData.split("\n").map((line, index) => (
-                <span key={index}>
-                  {line}
-                  <br />
-                </span>
-              ))}
-            </Text>
+            {codeLanguage ? (
+              <CodeEditor
+                value={documentData}
+                language={codeLanguage}
+                padding={15}
+                style={{
+                  backgroundColor: "#f5f5f5",
+                  fontFamily:
+                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                }}
+                data-color-mode={isDarkMode ? "dark" : "light"}
+              />
+            ) : (
+              <Text>
+                {documentData.split("\n").map((line, index) => (
+                  <span key={index}>
+                    {line}
+                    <br />
+                  </span>
+                ))}
+              </Text>
+            )}
           </div>
         </Flex>
       </Flex>
@@ -204,14 +277,28 @@ function View(): JSX.Element {
         <ViewControls />
         <Title level={3}>{documentTitle}</Title>
         <div className={styles.border} style={{ backgroundColor }}>
-          <Text>
-            {documentData.split("\n").map((line, index) => (
-              <span key={index}>
-                {line}
-                <br />
-              </span>
-            ))}
-          </Text>
+          {codeLanguage ? (
+            <CodeEditor
+              value={documentData}
+              language={codeLanguage}
+              padding={15}
+              style={{
+                backgroundColor: "#f5f5f5",
+                fontFamily:
+                  "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+              }}
+              data-color-mode={isDarkMode ? "dark" : "light"}
+            />
+          ) : (
+            <Text>
+              {documentData.split("\n").map((line, index) => (
+                <span key={index}>
+                  {line}
+                  <br />
+                </span>
+              ))}
+            </Text>
+          )}
         </div>
       </Flex>
     );

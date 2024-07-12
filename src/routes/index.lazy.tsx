@@ -13,6 +13,7 @@ import {
   PopconfirmProps,
   Space,
 } from "antd";
+import { Buffer } from "node:buffer";
 
 import { useCryptoCore } from "../common/use-crypto-core.ts";
 import { Header } from "../components/header.tsx";
