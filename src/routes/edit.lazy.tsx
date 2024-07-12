@@ -52,6 +52,12 @@ export const Route = createFileRoute("/edit")({
   },
 });
 
+const encodeBase64 = (data: string): string => {
+  return Buffer.from(data).toString("base64");
+};
+const decodeBase64 = (data: string): string => {
+  return Buffer.from(data, "base64").toString("ascii");
+};
 function Edit(): JSX.Element {
   const [updateDocument] = useUpdateDocumentMutation();
   const parameters = Route.useSearch();
@@ -85,7 +91,7 @@ function Edit(): JSX.Element {
     if (getDocumentData?.getDocument?.value) {
       const decryptedKey = cryptoCore.decryptKey(
         encryptedKeyFromUrl,
-        passwordFromUrl,
+        decodeBase64(passwordFromUrl),
       );
 
       const decryptedData = cryptoCore.decrypt(
@@ -117,7 +123,10 @@ function Edit(): JSX.Element {
 
   const handleUpdateDocument = async (): Promise<void> => {
     try {
-      const decryptedKey = cryptoCore.decryptKey(encryptedKeyFromUrl, password);
+      const decryptedKey = cryptoCore.decryptKey(
+        encryptedKeyFromUrl,
+        decodeBase64(password),
+      );
       const encryptedData = cryptoCore.encrypt(
         { title: documentTitle, value: documentData },
         decryptedKey,
@@ -139,7 +148,7 @@ function Edit(): JSX.Element {
             id: getDocumentData!.getDocument!.id,
             accessKey: accessKeyFromUrl,
             encryptedKey: encryptedKeyFromUrl,
-            password: password,
+            password: encodeBase64(password),
           },
         });
       }

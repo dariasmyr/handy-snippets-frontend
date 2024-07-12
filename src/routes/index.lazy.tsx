@@ -28,6 +28,10 @@ const cancel: PopconfirmProps["onCancel"] = (event): void => {
   console.log(event);
 };
 
+const encodeBase64 = (data: string): string => {
+  return Buffer.from(data).toString("base64");
+};
+
 function Index(): JSX.Element {
   const [createDocument] = useCreateDocumentMutation();
   const cryptoCore = useCryptoCore();
@@ -76,7 +80,7 @@ function Index(): JSX.Element {
               id: createDocumentData.createDocument,
               accessKey: accessKeyGenerated,
               encryptedKey,
-              password: password,
+              password: encodeBase64(password),
               fromCreate: true,
             },
           });

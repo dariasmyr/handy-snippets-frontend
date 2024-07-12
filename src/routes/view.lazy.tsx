@@ -43,6 +43,13 @@ export const Route = createFileRoute("/view")({
   },
 });
 
+const encodeBase64 = (data: string): string => {
+  return Buffer.from(data).toString("base64");
+};
+const decodeBase64 = (data: string): string => {
+  return Buffer.from(data, "base64").toString("ascii");
+};
+
 function View(): JSX.Element {
   const parameters = Route.useSearch();
   const idFromUrl: string = parameters.id;
@@ -76,7 +83,7 @@ function View(): JSX.Element {
     if (getDocumentData?.getDocument?.value) {
       const decryptedKey = cryptoCore.decryptKey(
         encryptedKeyFromUrl,
-        passwordFromUrl,
+        decodeBase64(passwordFromUrl),
       );
 
       const decryptedData = cryptoCore.decrypt(
@@ -134,7 +141,7 @@ function View(): JSX.Element {
 
       if (getDocumentData?.getDocument?.value) {
         const decryptedKey = cryptoCore.decryptKey(
-          encryptedKeyFromUrl,
+          decodeBase64(encryptedKeyFromUrl),
           password,
         );
 
@@ -162,7 +169,7 @@ function View(): JSX.Element {
         id: getDocumentData!.getDocument!.id,
         accessKey: accessKeyFromUrl,
         encryptedKey: encryptedKeyFromUrl,
-        password: password,
+        password: encodeBase64(password),
       },
     });
   };

@@ -21,6 +21,10 @@ export interface IShareProperties {
   encryptedKey: string;
 }
 
+const decodeBase64 = (data: string): string => {
+  return Buffer.from(data, "base64").toString("ascii");
+};
+
 export const ShareModal = ({
   id,
   password,
@@ -39,10 +43,10 @@ export const ShareModal = ({
       let baseLink = `${window.location.origin}/view?id=${id}`;
       baseLink += `&encryptedKey=${encryptedKey}`;
       if (password && !sendPasswordSeparately) {
-        baseLink += `&password="${password}"`;
+        baseLink += `&password=${password}`;
       }
       if (password && sendPasswordSeparately) {
-        baseLink = baseLink.replace(`&password="${password}"`, "");
+        baseLink = baseLink.replace(`&password=${password}`, "");
       }
       if (accessKey && isAccessKeyAdded) {
         baseLink += `&accessKey=${accessKey}`;
@@ -121,7 +125,7 @@ export const ShareModal = ({
           {sendPasswordSeparately && password && (
             <Flex justify="flex-end" gap="small">
               <Space.Compact style={{ width: "70%" }}>
-                <Input value={password} readOnly />
+                <Input value={decodeBase64(password)} readOnly />
                 <Button type="primary" onClick={handleCopyPassword}>
                   Copy password
                 </Button>
