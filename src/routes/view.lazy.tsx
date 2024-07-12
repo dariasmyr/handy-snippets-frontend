@@ -162,8 +162,7 @@ function View(): JSX.Element {
       setIsDarkMode(event.matches);
     };
 
-    setBackgroundColor(darkModeMediaQuery.matches ? "#333" : "#fafafa");
-    setIsDarkMode(darkModeMediaQuery.matches);
+    console.log(isDarkMode, "isDarkMode");
     darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
 
     return (): void => {
@@ -194,7 +193,7 @@ function View(): JSX.Element {
 
       if (getDocumentData?.getDocument?.value) {
         const decryptedKey = cryptoCore.decryptKey(
-          decodeBase64(encryptedKeyFromUrl),
+          encryptedKeyFromUrl,
           password,
         );
 
@@ -227,7 +226,7 @@ function View(): JSX.Element {
         id: getDocumentData!.getDocument!.id,
         accessKey: accessKeyFromUrl,
         encryptedKey: encryptedKeyFromUrl,
-        password: encodeBase64(password),
+        password: passwordFromUrl ? password : encodeBase64(password),
       },
     });
   };

@@ -149,7 +149,7 @@ function Edit(): JSX.Element {
             id: getDocumentData!.getDocument!.id,
             accessKey: accessKeyFromUrl,
             encryptedKey: encryptedKeyFromUrl,
-            password: encodeBase64(password),
+            password: passwordFromUrl ?? encodeBase64(password),
           },
         });
       }
