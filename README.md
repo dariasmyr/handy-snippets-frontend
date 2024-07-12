@@ -1,7 +1,7 @@
 ![](./.github/logo.png)
 
-# Handy Snippets
-[Vite](https://vitejs.dev) + GraphQL + Typescript app for storing and sharing end-to-end encrypted notes online. 
+# Handy Snippets Frontend
+[Vite](https://vitejs.dev) + Typescript app for storing and sharing end-to-end encrypted notes online. This app uses [**GraphQL**](https://graphql.org/) API to interact with [**Handy Snippets Backend**](https://github.com/dariasmyr/handy-snippets-backend)
 
 ## Get started
 
