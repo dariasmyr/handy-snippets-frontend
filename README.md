@@ -1,16 +1,17 @@
 ![](./.github/logo.png)
 
-[Vite](https://vitejs.dev) + GraphQL + Typescript frontend boilerplate.
+# Handy Snippets
+[Vite](https://vitejs.dev) + GraphQL + Typescript app for storing and sharing end-to-end encrypted notes online. 
 
-# Get started
+## Get started
 
 **One-liner:**
 
-- `npx degit uxname/litefront my-app && cd my-app && git init && git add . && git commit -m "Initial commit" && npm install && cp .env.example .env && npm run gen && npm run start:dev`
+- `npx degit dariasmyr/handy-snippets-frontend my-app && cd my-app && git init && git add . && git commit -m "Initial commit" && npm install && cp .env.example .env && npm run gen && npm run start:dev`
 
 **Step by step:**
 
-- `npx degit uxname/litefront my-app`
+- `npx degit dariasmyr/handy-snippets-frontend my-app`
 - `cd my-app`
 - `git init && git add . && git commit -m "Initial commit"`
 - `npm install`
