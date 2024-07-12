@@ -110,7 +110,13 @@ function View(): JSX.Element {
     skip: !idFromUrl,
   });
 
-  const [backgroundColor, setBackgroundColor] = useState("#333");
+  const [backgroundColor, setBackgroundColor] = useState(
+    window.matchMedia &&
+      // eslint-disable-next-line sonarjs/no-duplicate-string
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "#333"
+      : "#fafafa",
+  );
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] =
     useState(!passwordFromUrl);
