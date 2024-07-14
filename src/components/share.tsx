@@ -38,6 +38,12 @@ export const ShareModal = ({
   const [link, setLink] = useState<string>("");
 
   useEffect(() => {
+    if (accessKey) {
+      setIsAccessKeyAdded(true);
+    }
+  }, []);
+
+  useEffect(() => {
     const generateLink = (): string => {
       let baseLink = `${window.location.origin}/view?id=${id}`;
       baseLink += `&encryptedKey=${encryptedKey}`;

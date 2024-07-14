@@ -251,6 +251,7 @@ function View(): JSX.Element {
           <div className={styles.border} style={{ backgroundColor }}>
             {codeLanguage ? (
               <CodeEditor
+                disabled={true}
                 value={documentData}
                 language={codeLanguage}
                 padding={15}

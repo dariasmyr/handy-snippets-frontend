@@ -19,6 +19,7 @@ import {
   Space,
   Tooltip,
 } from "antd";
+import { runes } from "runes2";
 
 import { useCryptoCore } from "../common/use-crypto-core.ts";
 import { Header } from "../components/header.tsx";
@@ -219,6 +220,7 @@ function Edit(): JSX.Element {
             variant="filled"
             value={documentTitle}
             onChange={(event) => setDocumentTitle(event.target.value)}
+            maxLength={100}
           />
           <TextArea
             rows={20}
@@ -226,6 +228,13 @@ function Edit(): JSX.Element {
             variant="filled"
             value={documentData}
             onChange={(event) => setDocumentData(event.target.value)}
+            count={{
+              show: true,
+              max: 100_000,
+              strategy: (txt) => runes(txt).length,
+              exceedFormatter: (txt, { max }) =>
+                runes(txt).slice(0, max).join(""),
+            }}
           />
         </Flex>
       </Flex>
