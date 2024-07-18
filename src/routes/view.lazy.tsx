@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
+import Markdown from "react-markdown";
 import {
   CopyOutlined,
   EyeInvisibleOutlined,
@@ -241,68 +242,54 @@ function View(): JSX.Element {
   };
 
   const renderContent = (): JSX.Element => {
-    return accessKeyFromUrl ? (
+    const commonFlexProperties = { gap: "small", vertical: true };
+    const commonDivStyle = {
+      className: styles.border,
+      style: codeLanguage === "markdown" ? {} : { backgroundColor },
+    };
+    const renderTextOrCode = (): ReactElement => {
+      if (!codeLanguage) {
+        return (
+          <Text>
+            {documentData.split("\n").map((line, index) => (
+              <span key={index}>
+                {line}
+                <br />
+              </span>
+            ))}
+          </Text>
+        );
+      }
+      return codeLanguage === "markdown" ? (
+        <Markdown>{documentData}</Markdown>
+      ) : (
+        <CodeEditor
+          disabled={true}
+          value={documentData}
+          language={codeLanguage}
+          padding={15}
+          style={{
+            backgroundColor: backgroundColor,
+            fontFamily:
+              "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+          }}
+          data-color-mode={isDarkTheme ? "dark" : "light"}
+        />
+      );
+    };
+
+    return (
       <Flex gap="middle" vertical>
         <ViewControls />
-        <Flex gap="small" vertical>
-          <Title level={3} style={{ margin: 0 }}>
+        <Flex {...commonFlexProperties}>
+          <Title level={3} style={{ margin: 0, marginTop: 12 }}>
             {documentTitle}
           </Title>
-          <div className={styles.border} style={{ backgroundColor }}>
-            {codeLanguage ? (
-              <CodeEditor
-                disabled={true}
-                value={documentData}
-                language={codeLanguage}
-                padding={15}
-                style={{
-                  backgroundColor: backgroundColor,
-                  fontFamily:
-                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-                }}
-                data-color-mode={isDarkTheme ? "dark" : "light"}
-              />
-            ) : (
-              <Text>
-                {documentData.split("\n").map((line, index) => (
-                  <span key={index}>
-                    {line}
-                    <br />
-                  </span>
-                ))}
-              </Text>
-            )}
+          <div>
+            <hr />
           </div>
+          <div {...commonDivStyle}>{renderTextOrCode()}</div>
         </Flex>
-      </Flex>
-    ) : (
-      <Flex gap="small" vertical>
-        <ViewControls />
-        <Title level={3}>{documentTitle}</Title>
-        <div className={styles.border} style={{ backgroundColor }}>
-          {codeLanguage ? (
-            <CodeEditor
-              value={documentData}
-              language={codeLanguage}
-              padding={15}
-              style={{
-                backgroundColor: backgroundColor,
-                fontFamily:
-                  "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-              }}
-              data-color-mode={isDarkTheme ? "dark" : "light"}
-            />
-          ) : (
-            <Text>
-              {documentData.split("\n").map((line, index) => (
-                <span key={index}>
-                  {line}
-                  <br />
-                </span>
-              ))}
-            </Text>
-          )}
-        </div>
       </Flex>
     );
   };
