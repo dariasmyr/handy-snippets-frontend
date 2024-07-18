@@ -7,6 +7,7 @@ import react from "@vitejs/plugin-react";
 import { configDotenv } from "dotenv";
 import { UserConfig } from "vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
+import { VitePWA } from "vite-plugin-pwa";
 import { vitePluginVersionMark } from "vite-plugin-version-mark";
 
 import { viteDotenvChecker } from "./src/common/vite-dotenv-checker.plugin";
@@ -37,6 +38,7 @@ const vite = (): UserConfig => {
         ifGlobal: true,
       }),
       viteDotenvChecker(),
+      VitePWA({ registerType: "autoUpdate" }),
     ],
     build: {
       sourcemap: true,
