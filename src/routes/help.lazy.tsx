@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createLazyFileRoute } from "@tanstack/react-router";
 import { Button, Flex, Result } from "antd";
 
 import { Header } from "../components/header.tsx";
 
-export const Route = createFileRoute("/help")({
+export const Route = createLazyFileRoute("/help")({
   component: Help,
 });
 const handleGoToSupport = (): void => {

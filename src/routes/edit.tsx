@@ -1,45 +1,53 @@
-import { ReactElement, useEffect, useState } from "react";
-import Markdown from "react-markdown";
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable unicorn/no-null */
+import { useEffect, useState } from "react";
 import {
   CopyOutlined,
+  DeleteOutlined,
   EyeInvisibleOutlined,
   EyeTwoTone,
 } from "@ant-design/icons";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import CodeEditor from "@uiw/react-textarea-code-editor";
 import {
   Button,
   Flex,
   Input,
   message,
   Modal,
+  Popconfirm,
+  PopconfirmProps,
   Space,
   Tooltip,
-  Typography,
 } from "antd";
+import { runes } from "runes2";
 
 import { useCryptoCore } from "../common/use-crypto-core.ts";
 import { Header } from "../components/header.tsx";
 import { ShareModal } from "../components/share.tsx";
-import { useGetDocumentQuery } from "../generated/graphql.tsx";
+import {
+  useDeleteDocumentMutation,
+  useGetDocumentQuery,
+  useUpdateDocumentMutation,
+} from "../generated/graphql.tsx";
 
-import styles from "./__root.module.scss";
+const { TextArea } = Input;
 
-const { Title, Text } = Typography;
+const cancel: PopconfirmProps["onCancel"] = (event): void => {
+  console.log(event);
+};
 
-type ViewParameters = {
+type EditParameters = {
   id: string;
   accessKey: string;
   encryptedKey: string;
   password?: string | undefined;
-  fromCreate?: boolean | undefined;
 };
 
-export const Route = createFileRoute("/view")({
-  component: View,
-  validateSearch: (parameters: ViewParameters): ViewParameters => {
-    if (!parameters.id) {
-      throw new Error("Document ID is missing");
+export const Route = createFileRoute("/edit")({
+  component: Edit,
+  validateSearch: (parameters: EditParameters): EditParameters => {
+    if (!parameters.id && !parameters.accessKey) {
+      throw new Error("Document ID or access key is missing");
     }
     return parameters;
   },
@@ -52,56 +60,13 @@ const decodeBase64 = (data: string): string => {
   return atob(data);
 };
 
-const languageMapping: Record<string, string> = {
-  js: "javascript",
-  ts: "typescript",
-  jsx: "jsx",
-  tsx: "tsx",
-  html: "html",
-  css: "css",
-  json: "json",
-  py: "python",
-  java: "java",
-  cpp: "cpp",
-  c: "c",
-  cs: "csharp",
-  php: "php",
-  rb: "ruby",
-  swift: "swift",
-  kotlin: "kotlin",
-  md: "markdown",
-  sh: "shell",
-  sql: "sql",
-  xml: "xml",
-  yaml: "yaml",
-  yml: "yaml",
-  rs: "rust",
-  go: "go",
-  lua: "lua",
-  r: "r",
-  ini: "ini",
-  dockerfile: "dockerfile",
-  bat: "bat",
-  cmd: "bat",
-  perl: "perl",
-  pl: "perl",
-  scala: "scala",
-  groovy: "groovy",
-  scss: "scss",
-  sass: "sass",
-  less: "less",
-  coffee: "coffeescript",
-  txt: "plaintext",
-  log: "plaintext",
-};
-
-function View(): JSX.Element {
+function Edit(): JSX.Element {
+  const [updateDocument] = useUpdateDocumentMutation();
   const parameters = Route.useSearch();
   const idFromUrl: string = parameters.id;
   const accessKeyFromUrl: string | undefined = parameters.accessKey;
   const encryptedKeyFromUrl: string = parameters.encryptedKey;
   const passwordFromUrl: string | undefined = parameters.password;
-  const fromCreate = parameters.fromCreate;
   const {
     data: getDocumentData,
     loading: getDocumentLoading,
@@ -110,27 +75,16 @@ function View(): JSX.Element {
     variables: { id: Number.parseInt(idFromUrl!) },
     skip: !idFromUrl,
   });
+  const cryptoCore = useCryptoCore();
 
-  const [backgroundColor, setBackgroundColor] = useState(
-    window.matchMedia &&
-      // eslint-disable-next-line sonarjs/no-duplicate-string
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "#333"
-      : "#fafafa",
-  );
+  const [deleteDocument] = useDeleteDocumentMutation();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] =
     useState(!passwordFromUrl);
   const [password, setPassword] = useState(passwordFromUrl || "");
   const [documentTitle, setDocumentTitle] = useState<string>("");
   const [documentData, setDocumentData] = useState<string>("");
-  const [codeLanguage, setCodeLanguage] = useState<string | undefined>();
-  const [isDarkTheme, setIsDarkTheme] = useState<boolean>(
-    window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches,
-  );
   const navigate = useNavigate();
-  const cryptoCore = useCryptoCore();
 
   useEffect(() => {
     if (!passwordFromUrl) {
@@ -149,31 +103,8 @@ function View(): JSX.Element {
 
       setDocumentTitle(decryptedData.title);
       setDocumentData(decryptedData.value);
-
-      const fileExtension = decryptedData.title.split(".").pop();
-      if (fileExtension && languageMapping[fileExtension]) {
-        setCodeLanguage(languageMapping[fileExtension]);
-      }
     }
-  }, [getDocumentData, encryptedKeyFromUrl, passwordFromUrl, cryptoCore]);
-
-  useEffect(() => {
-    if (fromCreate === true) {
-      setIsShareModalOpen(true);
-    }
-  }, [fromCreate]);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleThemeChange = (event: MediaQueryListEvent): void => {
-      setBackgroundColor(event.matches ? "#333" : "#fafafa");
-      setIsDarkTheme(event.matches);
-    };
-    console.log(mediaQuery);
-    mediaQuery.addEventListener("change", handleThemeChange);
-    return (): void =>
-      mediaQuery.removeEventListener("change", handleThemeChange);
-  }, []);
+  }, [getDocumentData, encryptedKeyFromUrl, passwordFromUrl]);
 
   if (!idFromUrl) {
     navigate({ to: "/" });
@@ -190,6 +121,42 @@ function View(): JSX.Element {
   const handleCopyToClipboard = (): void => {
     navigator.clipboard.writeText(documentData);
     message.success("Copied to clipboard.");
+  };
+
+  const handleUpdateDocument = async (): Promise<void> => {
+    try {
+      const decryptedKey = cryptoCore.decryptKey(
+        encryptedKeyFromUrl,
+        decodeBase64(password),
+      );
+      const encryptedData = cryptoCore.encrypt(
+        { title: documentTitle, value: documentData },
+        decryptedKey,
+      );
+      const { data: updateDocumentData } = await updateDocument({
+        variables: {
+          id: getDocumentData!.getDocument!.id,
+          value: encryptedData,
+          accessKey: accessKeyFromUrl,
+          ttlMs: getDocumentData!.getDocument!.ttlMs,
+          maxViewCount: getDocumentData!.getDocument!.maxViewCount,
+        },
+      });
+      if (updateDocumentData?.updateDocument) {
+        message.success("Document updated successfully");
+        await navigate({
+          to: "/view",
+          search: {
+            id: getDocumentData!.getDocument!.id.toString(),
+            accessKey: accessKeyFromUrl,
+            encryptedKey: encryptedKeyFromUrl,
+            password: passwordFromUrl ?? encodeBase64(password),
+          },
+        });
+      }
+    } catch (error) {
+      message.error(`Failed to update document: ${error}`);
+    }
   };
 
   const handleShowDocument = async (): Promise<void> => {
@@ -209,11 +176,6 @@ function View(): JSX.Element {
 
         setDocumentTitle(decryptedData.title);
         setDocumentData(decryptedData.value);
-
-        const fileExtension = decryptedData.title.split(".").pop();
-        if (fileExtension) {
-          setCodeLanguage(languageMapping[fileExtension]);
-        }
       }
     } else {
       message.error("Password is required to view the document.");
@@ -224,86 +186,75 @@ function View(): JSX.Element {
     navigate({ to: "/" });
   };
 
-  const handleGoToEditPage = async (): Promise<void> => {
-    await navigate({
-      to: "/edit",
-      search: {
-        id: getDocumentData!.getDocument!.id,
-        accessKey: accessKeyFromUrl,
-        encryptedKey: encryptedKeyFromUrl,
-        password: passwordFromUrl ? password : encodeBase64(password),
-      },
-    });
-  };
-
   const handleCancel = (): void => {
     setIsPasswordModalOpen(false);
     setIsShareModalOpen(false);
   };
 
-  const renderContent = (): JSX.Element => {
-    const commonFlexProperties = { gap: "small", vertical: true };
-    const commonDivStyle = {
-      className: styles.border,
-      style: codeLanguage === "markdown" ? {} : { backgroundColor },
-    };
-    const renderTextOrCode = (): ReactElement => {
-      if (!codeLanguage) {
-        return (
-          <Text>
-            {documentData.split("\n").map((line, index) => (
-              <span key={index}>
-                {line}
-                <br />
-              </span>
-            ))}
-          </Text>
-        );
-      }
-      return codeLanguage === "markdown" ? (
-        <Markdown>{documentData}</Markdown>
-      ) : (
-        <CodeEditor
-          disabled={true}
-          value={documentData}
-          language={codeLanguage}
-          padding={15}
-          style={{
-            backgroundColor: backgroundColor,
-            fontFamily:
-              "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-          }}
-          data-color-mode={isDarkTheme ? "dark" : "light"}
-        />
-      );
-    };
+  const handleDeleteDocument = async (): Promise<void> => {
+    if (!idFromUrl || !accessKeyFromUrl) {
+      message.error("Document ID or access key missing.");
+      return;
+    }
+    try {
+      await deleteDocument({
+        variables: {
+          id: Number(idFromUrl),
+          accessKey: accessKeyFromUrl,
+        },
+      });
+      message.success("Document deleted successfully");
+      navigate({ to: "/" });
+    } catch (error) {
+      message.error(`Failed to delete document: ${error}`);
+    }
+  };
 
+  const renderContent = (): JSX.Element => {
     return (
-      <Flex gap="middle" vertical>
-        <ViewControls />
-        <Flex {...commonFlexProperties}>
-          <Title level={3} style={{ margin: 0, marginTop: 12 }}>
-            {documentTitle}
-          </Title>
-          <div>
-            <hr />
-          </div>
-          <div {...commonDivStyle}>{renderTextOrCode()}</div>
+      <Flex gap="small" vertical>
+        <EditControls />
+        <Flex gap="small" vertical>
+          <Input
+            placeholder="Name me!"
+            variant="filled"
+            value={documentTitle}
+            onChange={(event) => setDocumentTitle(event.target.value)}
+            maxLength={100}
+          />
+          <TextArea
+            rows={20}
+            placeholder="Time to write something awesome!"
+            variant="filled"
+            value={documentData}
+            onChange={(event) => setDocumentData(event.target.value)}
+            count={{
+              show: true,
+              max: 100_000,
+              strategy: (txt) => runes(txt).length,
+              exceedFormatter: (txt, { max }) =>
+                runes(txt).slice(0, max).join(""),
+            }}
+          />
         </Flex>
       </Flex>
     );
   };
 
-  const ViewControls = (): JSX.Element => {
+  const renderSaveButton = (): JSX.Element | null => {
+    return documentData === null || documentData === "" ? null : (
+      <Button onClick={handleUpdateDocument}>Save</Button>
+    );
+  };
+
+  const EditControls = (): JSX.Element => {
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>
           <Button onClick={handleGoToCreatePage} type="primary">
             Create new
           </Button>
-          {accessKeyFromUrl && (
-            <Button onClick={handleGoToEditPage}>Edit</Button>
-          )}
+          {renderSaveButton()}
         </Flex>
         <Flex gap="small" wrap>
           <Space.Compact block>
@@ -319,6 +270,18 @@ function View(): JSX.Element {
             >
               Share
             </Button>
+            <Space>
+              <Popconfirm
+                title="Delete the task"
+                description="Are you sure to delete this task?"
+                onConfirm={handleDeleteDocument}
+                onCancel={cancel}
+                okText="Yes"
+                cancelText="No"
+              >
+                <Button shape="circle" danger icon={<DeleteOutlined />} />
+              </Popconfirm>
+            </Space>
           </Space.Compact>
         </Flex>
       </Flex>
@@ -351,9 +314,9 @@ function View(): JSX.Element {
       </Modal>
       <ShareModal
         id={idFromUrl}
-        password={password}
         isShareModalOpen={isShareModalOpen}
         setIsShareModalOpen={setIsShareModalOpen}
+        password={password}
         accessKey={accessKeyFromUrl}
         encryptedKey={encryptedKeyFromUrl}
       />
@@ -361,4 +324,4 @@ function View(): JSX.Element {
   );
 }
 
-export default View;
+export default Edit;

@@ -78,7 +78,7 @@ function Index(): JSX.Element {
           await navigate({
             to: "/view",
             search: {
-              id: createDocumentData.createDocument,
+              id: createDocumentData.createDocument.toString(),
               accessKey: accessKeyGenerated,
               encryptedKey,
               password: encodeBase64(password),
