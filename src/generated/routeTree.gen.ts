@@ -80,12 +80,54 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren({
-  IndexLazyRoute,
-  EditRoute,
-  ViewRoute,
-  HelpLazyRoute,
-})
+export interface FileRoutesByFullPath {
+  '/': typeof IndexLazyRoute
+  '/edit': typeof EditRoute
+  '/view': typeof ViewRoute
+  '/help': typeof HelpLazyRoute
+}
+
+export interface FileRoutesByTo {
+  '/': typeof IndexLazyRoute
+  '/edit': typeof EditRoute
+  '/view': typeof ViewRoute
+  '/help': typeof HelpLazyRoute
+}
+
+export interface FileRoutesById {
+  __root__: typeof rootRoute
+  '/': typeof IndexLazyRoute
+  '/edit': typeof EditRoute
+  '/view': typeof ViewRoute
+  '/help': typeof HelpLazyRoute
+}
+
+export interface FileRouteTypes {
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/edit' | '/view' | '/help'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/edit' | '/view' | '/help'
+  id: '__root__' | '/' | '/edit' | '/view' | '/help'
+  fileRoutesById: FileRoutesById
+}
+
+export interface RootRouteChildren {
+  IndexLazyRoute: typeof IndexLazyRoute
+  EditRoute: typeof EditRoute
+  ViewRoute: typeof ViewRoute
+  HelpLazyRoute: typeof HelpLazyRoute
+}
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexLazyRoute: IndexLazyRoute,
+  EditRoute: EditRoute,
+  ViewRoute: ViewRoute,
+  HelpLazyRoute: HelpLazyRoute,
+}
+
+export const routeTree = rootRoute
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
 
 /* prettier-ignore-end */
 
