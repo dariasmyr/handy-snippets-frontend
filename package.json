@@ -25,7 +25,7 @@
     "lint:style:fix": "npm run lint:style -- --fix",
     "lint:staged": "lint-staged",
     "ts:check": "tsc --noEmit",
-    "check": "npm run lint:style && npm run ts:check && npm run lint",
+    "check": "npx run-p lint:style ts:check lint",
     "____________________OTHER______________________________________________": "",
     "update": "npx ncu -u && npx rimraf node_modules package-lock.json && npm i --legacy-peer-deps && npm audit fix && npm run check",
     "prepare": "husky",
