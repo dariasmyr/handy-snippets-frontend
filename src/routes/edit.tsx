@@ -166,7 +166,7 @@ function Edit(): JSX.Element {
       if (getDocumentData?.getDocument?.value) {
         const decryptedKey = cryptoCore.decryptKey(
           encryptedKeyFromUrl,
-          password,
+          decodeBase64(password),
         );
 
         const decryptedData = cryptoCore.decrypt(
