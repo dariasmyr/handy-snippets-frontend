@@ -23,7 +23,6 @@
     "lint:fix": "npm run lint -- --fix",
     "lint:style": "stylelint \"**/*.{css,scss}\"",
     "lint:style:fix": "npm run lint:style -- --fix",
-    "lint:staged": "lint-staged",
     "ts:check": "tsc --noEmit",
     "check": "npm run lint:style && npm run ts:check && npm run lint",
     "____________________OTHER______________________________________________": "",
@@ -88,7 +87,6 @@
     "eslint-plugin-unicorn": "56.0.1",
     "husky": "^9.1.7",
     "i18next-parser": "^9.0.2",
-    "lint-staged": "^15.2.11",
     "sass": "^1.83.0",
     "sharp": "^0.33.5",
     "stylelint": "^16.11.0",
@@ -100,10 +98,5 @@
     "vite-plugin-pwa": "^0.21.1",
     "vite-plugin-version-mark": "^0.1.4",
     "vitest": "^2.1.8"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": "npm run check",
-    "*.{css,scss}": "npm run lint:style:fix",
-    "*.{json,md,html,xml,yml,yaml,mdx}": "prettier --write"
   }
 }
