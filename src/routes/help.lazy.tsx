@@ -1,3 +1,4 @@
+import React from "react";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { Button, Flex, Result } from "antd";
 
@@ -10,7 +11,7 @@ const handleGoToSupport = (): void => {
   window.open("https://t.me/daria_smyr", "_blank");
 };
 
-function Help(): JSX.Element {
+function Help(): React.JSX.Element {
   return (
     <Flex vertical>
       <Header tabOpened={"3"} />

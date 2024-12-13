@@ -1,6 +1,6 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable unicorn/no-null */
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CopyOutlined,
   DeleteOutlined,
@@ -60,7 +60,7 @@ const decodeBase64 = (data: string): string => {
   return atob(data);
 };
 
-function Edit(): JSX.Element {
+function Edit(): React.JSX.Element {
   const [updateDocument] = useUpdateDocumentMutation();
   const parameters = Route.useSearch();
   const idFromUrl: string = parameters.id;
@@ -210,7 +210,7 @@ function Edit(): JSX.Element {
     }
   };
 
-  const renderContent = (): JSX.Element => {
+  const renderContent = (): React.JSX.Element => {
     return (
       <Flex gap="small" vertical>
         <EditControls />
@@ -241,13 +241,13 @@ function Edit(): JSX.Element {
     );
   };
 
-  const renderSaveButton = (): JSX.Element | null => {
+  const renderSaveButton = (): React.JSX.Element | null => {
     return documentData === null || documentData === "" ? null : (
       <Button onClick={handleUpdateDocument}>Save</Button>
     );
   };
 
-  const EditControls = (): JSX.Element => {
+  const EditControls = (): React.JSX.Element => {
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>

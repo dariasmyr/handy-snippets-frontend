@@ -29,12 +29,12 @@ const items = [
 export const Header = (properties: ITabProperties): ReactElement => {
   const navigate = useNavigate();
   const [isDarkTheme, setIsDarkTheme] = useState<boolean>(
-    window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches,
+    globalThis.matchMedia &&
+      globalThis.matchMedia("(prefers-color-scheme: dark)").matches,
   );
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event: MediaQueryListEvent): void => {
       setIsDarkTheme(event.matches);
     };
@@ -63,7 +63,7 @@ export const Header = (properties: ITabProperties): ReactElement => {
               alt="logo"
               className={styles.logo}
               onClick={(): void => {
-                window.location.href = "/";
+                globalThis.location.href = "/";
               }}
             />
           ),

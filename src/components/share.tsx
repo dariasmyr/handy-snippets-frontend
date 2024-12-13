@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Flex,
@@ -31,7 +31,7 @@ export const ShareModal = ({
   setIsShareModalOpen,
   accessKey,
   encryptedKey,
-}: IShareProperties): JSX.Element => {
+}: IShareProperties): React.JSX.Element => {
   const [isAccessKeyAdded, setIsAccessKeyAdded] = useState(false);
   const [sendPasswordSeparately, setSendPasswordSeparately] =
     useState<boolean>(false);
@@ -45,7 +45,7 @@ export const ShareModal = ({
 
   useEffect(() => {
     const generateLink = (): string => {
-      let baseLink = `${window.location.origin}/view?id=${id}`;
+      let baseLink = `${globalThis.location.origin}/view?id=${id}`;
       baseLink += `&encryptedKey=${encryptedKey}`;
       if (password && !sendPasswordSeparately) {
         baseLink += `&password=${password}`;

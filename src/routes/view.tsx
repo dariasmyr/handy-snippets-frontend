@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import {
   CopyOutlined,
@@ -95,7 +95,7 @@ const languageMapping: Record<string, string> = {
   log: "plaintext",
 };
 
-function View(): JSX.Element {
+function View(): React.JSX.Element {
   const parameters = Route.useSearch();
   const idFromUrl: string = parameters.id;
   const accessKeyFromUrl: string | undefined = parameters.accessKey;
@@ -112,9 +112,9 @@ function View(): JSX.Element {
   });
 
   const [backgroundColor, setBackgroundColor] = useState(
-    window.matchMedia &&
+    globalThis.matchMedia &&
       // eslint-disable-next-line sonarjs/no-duplicate-string
-      window.matchMedia("(prefers-color-scheme: dark)").matches
+      globalThis.matchMedia("(prefers-color-scheme: dark)").matches
       ? "#333"
       : "#fafafa",
   );
@@ -126,8 +126,8 @@ function View(): JSX.Element {
   const [documentData, setDocumentData] = useState<string>("");
   const [codeLanguage, setCodeLanguage] = useState<string | undefined>();
   const [isDarkTheme, setIsDarkTheme] = useState<boolean>(
-    window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches,
+    globalThis.matchMedia &&
+      globalThis.matchMedia("(prefers-color-scheme: dark)").matches,
   );
   const navigate = useNavigate();
   const cryptoCore = useCryptoCore();
@@ -164,7 +164,7 @@ function View(): JSX.Element {
   }, [fromCreate]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event: MediaQueryListEvent): void => {
       setBackgroundColor(event.matches ? "#333" : "#fafafa");
       setIsDarkTheme(event.matches);
@@ -241,7 +241,7 @@ function View(): JSX.Element {
     setIsShareModalOpen(false);
   };
 
-  const renderContent = (): JSX.Element => {
+  const renderContent = (): React.JSX.Element => {
     const commonFlexProperties = { gap: "small", vertical: true };
     const commonDivStyle = {
       className: styles.border,
@@ -294,7 +294,7 @@ function View(): JSX.Element {
     );
   };
 
-  const ViewControls = (): JSX.Element => {
+  const ViewControls = (): React.JSX.Element => {
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>

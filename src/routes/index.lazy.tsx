@@ -1,6 +1,6 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable unicorn/no-null */
-import { useState } from "react";
+import React, { useState } from "react";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -33,7 +33,7 @@ const encodeBase64 = (data: string): string => {
   return btoa(data);
 };
 
-function Index(): JSX.Element {
+function Index(): React.JSX.Element {
   const [createDocument] = useCreateDocumentMutation();
   const cryptoCore = useCryptoCore();
 
@@ -111,7 +111,7 @@ function Index(): JSX.Element {
     }
   };
 
-  const renderCreateButton = (): JSX.Element => {
+  const renderCreateButton = (): React.JSX.Element => {
     return documentData === null || documentData === "" ? (
       <Button type="primary" onClick={handleCreateNewDocument}>
         Create new
@@ -131,13 +131,13 @@ function Index(): JSX.Element {
     );
   };
 
-  const renderSaveButton = (): JSX.Element | null => {
+  const renderSaveButton = (): React.JSX.Element | null => {
     return documentData === null || documentData === "" ? null : (
       <Button onClick={handleSaveDocument}>Save</Button>
     );
   };
 
-  const Controls = (): JSX.Element => {
+  const Controls = (): React.JSX.Element => {
     return (
       <Flex justify={"space-between"}>
         <Flex gap="small" wrap>

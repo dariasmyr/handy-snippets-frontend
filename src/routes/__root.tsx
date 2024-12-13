@@ -6,12 +6,12 @@ import { ConfigProvider, theme } from "antd";
 const RootComponent: FC = () => {
   const isDevelopment = import.meta.env.MODE === "development";
   const [isDarkTheme, setIsDarkTheme] = useState<boolean>(
-    window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches,
+    globalThis.matchMedia &&
+      globalThis.matchMedia("(prefers-color-scheme: dark)").matches,
   );
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event: MediaQueryListEvent): void => {
       setIsDarkTheme(event.matches);
     };
