@@ -72,11 +72,6 @@ function Index(): React.JSX.Element {
             value: encryptedData,
             accessKey: accessKeyGenerated,
           },
-          context: {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
         });
         if (createDocumentData?.createDocument) {
           message.success("Document created successfully");
